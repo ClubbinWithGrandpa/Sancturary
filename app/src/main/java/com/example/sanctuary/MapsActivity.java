@@ -77,6 +77,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private static final int REQUEST_CALL = 1;
     private TextView mTextViewCountDown;
+    TextView Tracking;
     private Button mButtonStartReset;
     private Button mEmergencyCall;
     private Button mEmergencyCall1;
@@ -90,6 +91,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button mDEC3;
     private Button mAlarm;
     private Button mSetting;
+    boolean isRecording;
     Handler handler;
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
@@ -108,6 +110,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private MediaPlayer mPlayer;
     private static final String LOG_TAG = "AudioRecording";
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
+    Button cleanTrack;
 
 
     @Override
@@ -119,21 +122,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         handler = new Handler();
-        if(ContextCompat.checkSelfPermission(MapsActivity.this,
-                Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MapsActivity.this,
-                    new String[] {Manifest.permission.CALL_PHONE}, REQUEST_CALL);
-        }
 
-        if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
-        }
-
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         if(ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
             ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
+
+
 
 
         final MediaPlayer alarmSound = MediaPlayer.create(this, R.raw.alarm);
@@ -141,6 +136,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         alarmPlaying = false;
+        isRecording = false;
         mEmergencyContactsRunning = false;
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
@@ -160,7 +156,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDEC2 = findViewById(R.id.DEC2);
         mDEC3 = findViewById(R.id.DEC3);
         mAlarm = findViewById(R.id.alarm);
-
+        Tracking = findViewById(R.id.guardianModeAct3);
+        cleanTrack = findViewById(R.id.cleanTrack);
 
 
 
@@ -182,12 +179,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-
+        cleanTrack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                guardianLocations = new ArrayList<>();
+                handleGetDirectionsResult(guardianLocations);
+            }
+        });
         mSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MapsActivity.this, SettingActivity.class);
-                startActivity(intent);
+                if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
+                }
+                else
+                {
+                    Intent intent = new Intent(MapsActivity.this, SettingActivity.class);
+                    startActivity(intent);
+                }
             }
         });
 
@@ -370,15 +379,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mButtonStartReset.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mTimerRunning) {
-                    resetTimer();
-                    mTextViewCountDown.setVisibility(View.INVISIBLE);
-                    mGuardianModeOn.setVisibility(View.INVISIBLE);
+
+                if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(getApplicationContext(), "Please complete your personal info in settings please.", Toast.LENGTH_SHORT).show();
                 }
-                else {
-                    DialogFragment timePicker = new TimePickerFragment();
-                    timePicker.show(getSupportFragmentManager(), "time picker");
+                else
+                {
+                    if(mTimerRunning) {
+                        resetTimer();
+                        mTextViewCountDown.setVisibility(View.INVISIBLE);
+                        mGuardianModeOn.setVisibility(View.INVISIBLE);
+                    }
+                    else {
+                        DialogFragment timePicker = new TimePickerFragment();
+                        timePicker.show(getSupportFragmentManager(), "time picker");
+                    }
                 }
+
+
 
 
             }
@@ -492,6 +510,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             if(grantResults.length>0 && grantResults[0] != PackageManager.PERMISSION_GRANTED)
             {
                 Toast.makeText(getApplicationContext(), "Location permission denied", Toast.LENGTH_SHORT).show();
+
+            }
+            else if (grantResults.length>0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                Toast.makeText(getApplicationContext(), "Please restart your app to enable location service", Toast.LENGTH_SHORT).show();
+
             }
         }else if (requestCode == REQUEST_AUDIO_PERMISSION_CODE)
         {
@@ -530,31 +554,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGuardianModeOn.setVisibility(View.VISIBLE);
         mTextViewCountDown.setVisibility(View.VISIBLE);
 
-        if(CheckPermissions()) {
-            mRecorder = new MediaRecorder();
-            mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-            mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
-            Context ctx = getApplicationContext();
-            File audioDir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "AudioMemos");
-            Log.d("mt",ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath());
-            audioDir.mkdirs();
-            String audioDirPath = audioDir.getAbsolutePath();
-            File recordingFile = new File(audioDirPath + "/" + "a" + ".m4a");
-
-            Log.d("myTag", recordingFile.getAbsolutePath());
-            mRecorder.setOutputFile(recordingFile.getAbsolutePath());
-            try {
-                mRecorder.prepare();
-            } catch (IOException e) {
-                Log.e(LOG_TAG, e.toString());
-            }
-            mRecorder.start();
-            Toast.makeText(getApplicationContext(), "Recording Started", Toast.LENGTH_LONG).show();
-        }
-        else
-        {
+        if(!CheckPermissions()) {
             RequestPermissions();
         }
 
@@ -578,19 +578,63 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 runnable.run();
                 sendMessages();
 
+                if(CheckPermissions()) {
+                    mRecorder = new MediaRecorder();
+                    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+                    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+                    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+                    Context ctx = getApplicationContext();
+                    File audioDir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "AudioMemos");
+                    Log.d("mt",ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath());
+                    audioDir.mkdirs();
+                    String audioDirPath = audioDir.getAbsolutePath();
+                    File recordingFile = new File(audioDirPath + "/" + "a" + ".m4a");
+
+                    Log.d("myTag", recordingFile.getAbsolutePath());
+                    mRecorder.setOutputFile(recordingFile.getAbsolutePath());
+                    try {
+                        mRecorder.prepare();
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, e.toString());
+                    }
+                    mRecorder.start();
+                    Toast.makeText(getApplicationContext(), "Recording Started", Toast.LENGTH_LONG).show();
+                    isRecording = true;
+                    Tracking.setVisibility(View.VISIBLE);
+
+                }
+                else
+                {
+                    RequestPermissions();
+                }
+
+
 
             }
         }.start();
         mTimerRunning = true;
 
+
+
+
+
         mButtonStartReset.setText("Stop");
     }
     private void resetTimer() {
         handler.removeCallbacks(runnable);
-        mRecorder.stop();
-        mRecorder.release();
+        if(mRecorder != null)
+        {
+            mRecorder.stop();
+            mRecorder.release();
+        }
         mRecorder = null;
-        Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_LONG).show();
+        if(isRecording)
+        {
+            Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_LONG).show();
+            Tracking.setVisibility(View.INVISIBLE);
+        }
+
         mCountDownTimer.cancel();
         mTimerRunning = false;
         mTimeLeftMillis = 0;
@@ -613,7 +657,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             sendActualMessages();
         }
         else{
-            Log.d("myTag", "lol");
             ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
         }
 
@@ -698,21 +741,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mMap = googleMap;
         //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        fusedLocationProviderClient
-                .getLastLocation().
-                addOnCompleteListener(new OnCompleteListener<Location>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Location> task) {
-                        Location location = task.getResult();
-                        if(location != null)
-                        {
-                            LatLng cur = new LatLng(location.getLatitude(), location.getLongitude());
-                            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(cur, 12.0f));
-                        }
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
+        if(ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
+        }
+        else
+        {
+            fusedLocationProviderClient
+                    .getLastLocation().
+                    addOnCompleteListener(new OnCompleteListener<Location>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Location> task) {
+                            Location location = task.getResult();
+                            if(location != null)
+                            {
+                                LatLng cur = new LatLng(location.getLatitude(), location.getLongitude());
+                                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(cur, 12.0f));
+                            }
 
-                    }
-                });
-        mMap.setMyLocationEnabled(true);
+                        }
+                    });
+            mMap.setMyLocationEnabled(true);
+        }
+
 
     }
 

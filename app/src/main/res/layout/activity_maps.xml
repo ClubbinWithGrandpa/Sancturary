@@ -14,9 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MapsActivity"
-        tools:layout_editor_absoluteX="-5dp"
-        tools:layout_editor_absoluteY="-56dp" />
-
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/emergencyCall"
@@ -75,36 +74,52 @@
     <TextView
         android:id="@+id/textView_countdown"
         android:layout_width="235dp"
-        android:layout_height="88dp"
-        android:layout_marginStart="88dp"
+        android:layout_height="85dp"
         android:text="00:00:00"
         android:textColor="#FFFFFF"
         android:textSize="60sp"
         android:visibility="invisible"
-        map:layout_constraintBottom_toBottomOf="parent"
-        map:layout_constraintEnd_toEndOf="@+id/button41"
-        map:layout_constraintHorizontal_bias="0.508"
-        map:layout_constraintStart_toStartOf="@+id/map"
-        map:layout_constraintTop_toTopOf="@+id/map"
-        map:layout_constraintVertical_bias="0.138" />
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.575"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.144" />
 
     <TextView
-        android:elevation="2dp"
-        android:background="@drawable/myrect"
+
         android:id="@+id/GuardianModeAct"
-        android:layout_width="177dp"
-        android:layout_height="35dp"
-        android:layout_marginStart="108dp"
+        android:layout_width="169dp"
+        android:layout_height="42dp"
+        android:background="@drawable/myrect"
+        android:elevation="2dp"
         android:text="Guardian Mode ON"
-        android:textColor="#FFFFFF"
+        android:textColor="#BB86FC"
         android:textSize="20sp"
         android:visibility="invisible"
-        map:layout_constraintBottom_toBottomOf="parent"
-        map:layout_constraintEnd_toEndOf="parent"
-        map:layout_constraintHorizontal_bias="0.084"
-        map:layout_constraintStart_toStartOf="@+id/map"
-        map:layout_constraintTop_toTopOf="@+id/map"
-        map:layout_constraintVertical_bias="0.278" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.277" />
+
+    <TextView
+
+        android:id="@+id/guardianModeAct3"
+        android:layout_width="191dp"
+        android:layout_height="56dp"
+        android:background="@drawable/myrect"
+        android:elevation="2dp"
+        android:text="Tracking and sharing your current location"
+        android:textColor="#BB86FC"
+        android:textSize="20dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.524"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.81" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/EC1"
@@ -258,6 +273,20 @@
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintTop_toTopOf="@+id/map"
         map:layout_constraintVertical_bias="0.98" />
+
+    <Button
+        android:id="@+id/cleanTrack"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+
+        android:background="@drawable/ic_baseline_restart_alt_24"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.981" />
 
     <EditText
         android:id="@+id/edit_text"

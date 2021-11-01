@@ -136,6 +136,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 String name = mEditTextGname.getText().toString();
                 String age = mEditTextGage.getText().toString();
                 int radioGId = mGenderGroup.getCheckedRadioButtonId();
