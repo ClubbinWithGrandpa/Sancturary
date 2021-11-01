@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:map="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MapsActivity"
+        tools:layout_editor_absoluteX="-5dp"
+        tools:layout_editor_absoluteY="-56dp" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/emergencyCall"
+
+        android:layout_width="80dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="2dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        app:icon="@drawable/ic_baseline_call_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:layout_constraintEnd_toEndOf="@+id/map"
+        app:layout_constraintHorizontal_bias="0.0"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.499" />
+
+    <Button
+        android:id="@+id/Guardian"
+        style="@style/Base.TextAppearance.AppCompat"
+        android:layout_width="212dp"
+        android:layout_height="48dp"
+        android:background="@drawable/buttonshape"
+        android:text="Guardian"
+        android:textAllCaps="false"
+        android:textColor="#D9F5FF"
+
+        android:textSize="19dp"
+        android:typeface="sans"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintStart_toStartOf="parent"
+
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.904" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/alarm"
+        android:layout_width="80dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="2dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        app:icon="@drawable/ic_alarm_bell_icon_icons_com_68596"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="@+id/map"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.499" />
+
+    <TextView
+        android:id="@+id/textView_countdown"
+        android:layout_width="235dp"
+        android:layout_height="88dp"
+        android:layout_marginStart="88dp"
+        android:text="00:00:00"
+        android:textColor="#FFFFFF"
+        android:textSize="60sp"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="@+id/button41"
+        map:layout_constraintHorizontal_bias="0.508"
+        map:layout_constraintStart_toStartOf="@+id/map"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.138" />
+
+    <TextView
+        android:elevation="2dp"
+        android:background="@drawable/myrect"
+        android:id="@+id/GuardianModeAct"
+        android:layout_width="177dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="108dp"
+        android:text="Guardian Mode ON"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.084"
+        map:layout_constraintStart_toStartOf="@+id/map"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.278" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC1"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        android:visibility="invisible"
+        app:icon="@drawable/ic_baseline_add_ic_call_24"
+        app:iconGravity="textStart"
+
+        app:iconPadding="0dp"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.261"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.389" />
+
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC1_notnull"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.261"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.389" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC2"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        app:icon="@drawable/ic_baseline_add_ic_call_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        android:textColor="#FFFFFF"
+
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.362"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.499" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC2_notnull"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        android:visibility="invisible"
+
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.362"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.499" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC3"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        app:icon="@drawable/ic_baseline_add_ic_call_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+
+        android:textColor="#FFFFFF"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.258"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.607" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/EC3_notnull"
+        android:layout_width="100dp"
+        android:layout_height="43dp"
+        android:background="@drawable/buttonshape2"
+        android:textColor="#FFFFFF"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.258"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.607" />
+
+    <Button
+        android:id="@+id/DEC1"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="3dp"
+        android:background="@drawable/ic_baseline_cancel_24"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.442"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.364" />
+
+    <Button
+        android:id="@+id/DEC2"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/ic_baseline_cancel_24"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.516"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.473" />
+
+    <Button
+        android:id="@+id/DEC3"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="3dp"
+        android:background="@drawable/ic_baseline_cancel_24"
+        android:visibility="invisible"
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.431"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.582" />
+
+    <Button
+        android:id="@+id/setting"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+
+        android:background="@drawable/ic_baseline_settings_24"
+
+        map:layout_constraintBottom_toBottomOf="parent"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintHorizontal_bias="0.957"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="@+id/map"
+        map:layout_constraintVertical_bias="0.98" />
+
+    <EditText
+        android:id="@+id/edit_text"
+        android:layout_width="187dp"
+        android:layout_height="56dp"
+        android:backgroundTint="#FFFFFF"
+        android:drawableLeft="@drawable/ic_location"
+        android:drawablePadding="16dp"
+        android:fontFamily="sans-serif-condensed"
+        android:gravity="center_vertical"
+        android:hint="Enter address"
+        android:padding="16dp"
+        android:textColorHint="#808c97"
+        map:layout_constraintBottom_toBottomOf="@+id/map"
+        map:layout_constraintEnd_toEndOf="parent"
+        map:layout_constraintStart_toStartOf="parent"
+        map:layout_constraintTop_toTopOf="parent"
+        map:layout_constraintVertical_bias="0.0" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout >
