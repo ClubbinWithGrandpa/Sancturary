@@ -60,11 +60,10 @@ public class EmergencyContacts extends AppCompatDialogFragment {
             return builder.create();
         }
         else{
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.MyDialogTheme);
             LayoutInflater inflater = getActivity().getLayoutInflater();
             View view = inflater.inflate(R.layout.ecinput, null);
             builder.setView(view)
-                    .setTitle("New Guardian Contact" + String.valueOf(EC_which-10))
                     .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {

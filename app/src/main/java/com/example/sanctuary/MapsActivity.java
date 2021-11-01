@@ -633,6 +633,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_LONG).show();
             Tracking.setVisibility(View.INVISIBLE);
+            isRecording = false;
         }
 
         mCountDownTimer.cancel();
