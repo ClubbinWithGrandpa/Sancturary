@@ -1,13 +1,19 @@
 package com.example.sanctuary;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -32,6 +38,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
     private Button mGuardianContact3Delete;
     private Button mGuardianContact4Delete;
     SharedPreferences sp;
+    private int addwhich = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,6 +165,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 openDialog(11);
             }
         });
@@ -223,12 +231,79 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
     }
 
     private void openDialog(int which){
+        addwhich = which;
         EmergencyContacts ecDiaglog = new EmergencyContacts(which);
         ecDiaglog.show(getSupportFragmentManager(), "ecDiaglog");
 
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (resultCode == -1) {
+            Uri contactData = data.getData();
+            Cursor c = getContentResolver().query(contactData, null, null, null, null);
+            if (c.moveToFirst()) {
+                int phoneIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                String num = c.getString(phoneIndex);
+                int nameIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Identity.DISPLAY_NAME);
+                String name = c.getString(nameIndex);
+
+                SmsManager smsManager = SmsManager.getDefault();
+                String messageBody;
+
+
+                SharedPreferences.Editor editor = sp.edit();
+
+                String nameInfo = sp.getString("name", "");
+                if(name.equals(""))
+                {
+                    messageBody = "You have selected as my guardian contact";
+                }
+                else
+                {
+                    messageBody = "You have selected as "+ nameInfo +"'s guardian contact";
+                }
+
+                smsManager.sendTextMessage(num, null, messageBody, null, null);
+
+
+                editor.putString("GC" + String.valueOf(addwhich-10) + "_name", name);
+                editor.putString("GC" + String.valueOf(addwhich-10) + "_number", num);
+                editor.commit();
+                String GC1_name = sp.getString("GC1_name", "");
+                String GC2_name = sp.getString("GC2_name", "");
+                String GC3_name = sp.getString("GC3_name", "");
+                String GC4_name = sp.getString("GC4_name", "");
+
+                String GC1_num = sp.getString("GC1_number", "");
+                String GC2_num = sp.getString("GC2_number", "");
+                String GC3_num = sp.getString("GC3_number", "");
+                String GC4_num = sp.getString("GC4_number", "");
+
+                if(!GC1_name.equals("")){
+                    mGuardianContact1.setText(GC1_name + " - "+GC1_num);
+                    mGuardianContact1Delete.setVisibility(View.VISIBLE);
+                }
+                if(!GC2_name.equals("")){
+                    mGuardianContact2.setText(GC2_name + " - "+GC2_num);
+                    mGuardianContact2Delete.setVisibility(View.VISIBLE);
+                }
+                if(!GC3_name.equals("")){
+                    mGuardianContact3.setText(GC3_name + " - "+GC3_num);
+                    mGuardianContact3Delete.setVisibility(View.VISIBLE);
+                }
+                if(!GC4_name.equals("")){
+                    mGuardianContact4.setText(GC4_name + " - "+GC4_num);
+                    mGuardianContact4Delete.setVisibility(View.VISIBLE);
+                }
+
+            }
+        }
+
+    }
 
     @Override
     public void applyText(String ecName, String ecNumber, int which) {

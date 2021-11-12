@@ -17,6 +17,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
 import android.media.MediaPlayer;
@@ -27,6 +28,7 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
@@ -72,7 +74,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TimePickerDialog.OnTimeSetListener, EmergencyContacts.EmergencyContactsDialogListener {
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TimePickerDialog.OnTimeSetListener,
+        EmergencyContacts.EmergencyContactsDialogListener {
     final long SEND_INTERVAL = 5000;
 
     private static final int REQUEST_CALL = 1;
@@ -112,15 +115,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
     Button cleanTrack;
 
+    private int addwhich = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-
-
-
-
-
+        
         handler = new Handler();
 
         if(ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -256,6 +257,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 if(!mEmergencyContactsRunning)
                 {
+
+
                     mEmergencyContactsRunning = true;
                     mEmergencyCall1.setVisibility(View.VISIBLE);
                     mEmergencyCall2.setVisibility(View.VISIBLE);
@@ -424,40 +427,44 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         @Override
                         public void onComplete(@NonNull Task<Location> task) {
                             Location location = task.getResult();
-                            LatLng cur = new LatLng(location.getLatitude(), location.getLongitude());
-                            guardianLocations.add(cur);
-                            handleGetDirectionsResult(guardianLocations);
+                            if(location != null)
+                            {
+                                LatLng cur = new LatLng(location.getLatitude(), location.getLongitude());
+                                guardianLocations.add(cur);
+                                handleGetDirectionsResult(guardianLocations);
 
-                            String GC1_name = sp.getString("GC1_name", "");
-                            String GC2_name = sp.getString("GC2_name", "");
-                            String GC3_name = sp.getString("GC3_name", "");
-                            String GC4_name = sp.getString("GC4_name", "");
+                                String GC1_name = sp.getString("GC1_name", "");
+                                String GC2_name = sp.getString("GC2_name", "");
+                                String GC3_name = sp.getString("GC3_name", "");
+                                String GC4_name = sp.getString("GC4_name", "");
 
-                            String GC1_num = sp.getString("GC1_number", "");
-                            String GC2_num = sp.getString("GC2_number", "");
-                            String GC3_num = sp.getString("GC3_number", "");
-                            String GC4_num = sp.getString("GC4_number", "");
+                                String GC1_num = sp.getString("GC1_number", "");
+                                String GC2_num = sp.getString("GC2_number", "");
+                                String GC3_num = sp.getString("GC3_number", "");
+                                String GC4_num = sp.getString("GC4_number", "");
 
-                            SmsManager smsManager = SmsManager.getDefault();
+                                SmsManager smsManager = SmsManager.getDefault();
 
-                            StringBuffer smsBody = new StringBuffer();
-                            smsBody.append("http://maps.google.com?q=");
-                            smsBody.append(location.getLatitude());
-                            smsBody.append(",");
-                            smsBody.append(location.getLongitude());
+                                StringBuffer smsBody = new StringBuffer();
+                                smsBody.append("http://maps.google.com?q=");
+                                smsBody.append(location.getLatitude());
+                                smsBody.append(",");
+                                smsBody.append(location.getLongitude());
 
-                            if(!GC1_name.equals("")){
-                                smsManager.sendTextMessage(GC1_num, null, smsBody.toString(), null, null);
+                                if(!GC1_name.equals("")){
+                                    smsManager.sendTextMessage(GC1_num, null, smsBody.toString(), null, null);
+                                }
+                                if(!GC2_name.equals("")){
+                                    smsManager.sendTextMessage(GC2_num, null, smsBody.toString(), null, null);
+                                }
+                                if(!GC3_name.equals("")){
+                                    smsManager.sendTextMessage(GC3_num, null, smsBody.toString(), null, null);
+                                }
+                                if(!GC4_name.equals("")){
+                                    smsManager.sendTextMessage(GC4_num, null, smsBody.toString(), null, null);
+                                }
                             }
-                            if(!GC2_name.equals("")){
-                                smsManager.sendTextMessage(GC2_num, null, smsBody.toString(), null, null);
-                            }
-                            if(!GC3_name.equals("")){
-                                smsManager.sendTextMessage(GC3_num, null, smsBody.toString(), null, null);
-                            }
-                            if(!GC4_name.equals("")){
-                                smsManager.sendTextMessage(GC4_num, null, smsBody.toString(), null, null);
-                            }
+
 
 
                         }
@@ -476,11 +483,80 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 12.0f));
             Log.d("myTag", place.getName());
             Log.d("myTag", String.valueOf(place.getLatLng()));
-        }else if (resultCode == AutocompleteActivity.RESULT_ERROR)
+        }else if (requestCode == 100 && resultCode == AutocompleteActivity.RESULT_ERROR)
         {
             Status status = Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(), status.getStatusMessage(), Toast.LENGTH_SHORT).show();
         }
+        /*
+        else if(requestCode >= 0 && requestCode <= 14 && resultCode == -1)
+        {
+            Log.d("myTag", "here!");
+            Uri contactData = data.getData();
+            Cursor c = getContentResolver().query(contactData, null, null, null, null);
+            if (c.moveToFirst()) {
+                int phoneIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                String num = c.getString(phoneIndex);
+                int nameIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Identity.DISPLAY_NAME);
+                String name = c.getString(nameIndex);
+                if(requestCode < 10) {
+
+                }
+                else{
+
+                }
+            }
+        }
+        */
+        else if (resultCode == -1)
+        {
+            Uri contactData = data.getData();
+            Cursor c = getContentResolver().query(contactData, null, null, null, null);
+            if (c.moveToFirst()) {
+                int phoneIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+                String num = c.getString(phoneIndex);
+                int nameIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Identity.DISPLAY_NAME);
+                String name = c.getString(nameIndex);
+
+
+
+
+
+
+
+                SharedPreferences.Editor editor = sp.edit();
+
+                editor.putString("EC"+ String.valueOf(addwhich)+ "_name", name);
+                editor.putString("EC"+ String.valueOf(addwhich)+ "_number", num);
+                editor.commit();
+                String EC1_name = sp.getString("EC1_name", "");
+                String EC2_name = sp.getString("EC2_name", "");
+                String EC3_name = sp.getString("EC3_name", "");
+                if(!EC1_name.equals("")){
+                    mEmergencyCall1.setVisibility(View.INVISIBLE);
+                    mEmergencyCall1_notNull.setVisibility(View.VISIBLE);
+                    mEmergencyCall1_notNull.setText(EC1_name);
+                    mDEC1.setVisibility(View.VISIBLE);
+                }
+                if(!EC2_name.equals("")){
+                    mEmergencyCall2.setVisibility(View.INVISIBLE);
+                    mEmergencyCall2_notNull.setVisibility(View.VISIBLE);
+                    mEmergencyCall2_notNull.setText(EC2_name);
+                    mDEC2.setVisibility(View.VISIBLE);
+                }
+                if(!EC3_name.equals("")){
+                    mEmergencyCall3.setVisibility(View.INVISIBLE);
+                    mEmergencyCall3_notNull.setVisibility(View.VISIBLE);
+                    mEmergencyCall3_notNull.setText(EC3_name);
+                    mDEC3.setVisibility(View.VISIBLE);
+                }
+            }
+
+
+
+
+        }
+
     }
 
     private void makePhoneCall(String number){
@@ -561,6 +637,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void openDialog(int which){
+        addwhich = which;
         EmergencyContacts ecDiaglog = new EmergencyContacts(which);
         ecDiaglog.show(getSupportFragmentManager(), "ecDiaglog");
     }
@@ -696,14 +773,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                     if(!GC2_name.equals("")){
                         smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
+                        smsManager.sendTextMessage(GC2_num, null, info_loc, null, null);
                         count++;
                     }
                     if(!GC3_name.equals("")){
                         smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
+                        smsManager.sendTextMessage(GC3_num, null, info_loc, null, null);
                         count++;
                     }
                     if(!GC4_name.equals("")){
                         smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
+                        smsManager.sendTextMessage(GC4_num, null, info_loc, null, null);
                         count++;
                     }
                     Toast.makeText(getApplicationContext(), "SMS sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_LONG).show();
