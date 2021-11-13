@@ -27,6 +27,7 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
@@ -65,6 +66,20 @@ import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
+import android.Manifest;
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Toast;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -94,6 +109,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button mDEC3;
     private Button mAlarm;
     private Button mSetting;
+    private Button mShowPath;
+    private boolean isShowingPath;
     boolean isRecording;
     Handler handler;
     private CountDownTimer mCountDownTimer;
@@ -108,15 +125,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     EditText editText;
     ArrayList<LatLng> guardianLocations;
+    ArrayList<Double> LocationServiceArray;
     Polyline routePolyline;
     private MediaRecorder mRecorder;
     private MediaPlayer mPlayer;
     private static final String LOG_TAG = "AudioRecording";
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
-    Button cleanTrack;
+
 
     private int addwhich = 0;
-
+    private static final int REQUEST_CODE_LOCATION_PERMISSION = 76;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,15 +176,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDEC3 = findViewById(R.id.DEC3);
         mAlarm = findViewById(R.id.alarm);
         Tracking = findViewById(R.id.guardianModeAct3);
-        cleanTrack = findViewById(R.id.cleanTrack);
-
-
+        mShowPath = findViewById(R.id.showPath);
+        isShowingPath = false;
 
 
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
 
+        if(isLocationServiceRunning())
+        {
+            mButtonStartReset.setText("Stop");
+            mTextViewCountDown.setVisibility(View.VISIBLE);
+            mGuardianModeOn.setVisibility(View.VISIBLE);
+            Tracking.setVisibility(View.VISIBLE);
 
+        }
+
+        mShowPath.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isShowingPath)
+                {
+                    guardianLocations = new ArrayList<>();
+                    handleGetDirectionsResult(guardianLocations);
+                    isShowingPath = false;
+                }
+                else
+                {
+                    TinyDB tinydb = new TinyDB(getApplicationContext());
+                    LocationServiceArray = tinydb.getListDouble("GuadianLocations");
+                    guardianLocations = new ArrayList<>();
+                    for (int i = 0; i < LocationServiceArray.size(); i = i + 2)
+                    {
+                        double latitude = LocationServiceArray.get(i);
+                        double longitude = LocationServiceArray.get(i+1);
+                        LatLng cur = new LatLng(latitude, longitude);
+                        guardianLocations.add(cur);
+
+                    }
+                    handleGetDirectionsResult(guardianLocations);
+                    isShowingPath = true;
+                }
+
+            }
+        });
 
         editText = findViewById(R.id.edit_text);
         Places.initialize(getApplicationContext(), "AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw");
@@ -180,13 +233,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        cleanTrack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                guardianLocations = new ArrayList<>();
-                handleGetDirectionsResult(guardianLocations);
-            }
-        });
+
         mSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -388,7 +435,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else
                 {
-                    if(mTimerRunning) {
+
+                    if(mTimerRunning || isLocationServiceRunning()) {
                         resetTimer();
                         mTextViewCountDown.setVisibility(View.INVISIBLE);
                         mGuardianModeOn.setVisibility(View.INVISIBLE);
@@ -414,6 +462,81 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
 
     }
+
+    public void startSharingLocation(){
+        if (ContextCompat.checkSelfPermission(
+                getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                    MapsActivity.this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUEST_CODE_LOCATION_PERMISSION
+            );
+        }
+        else if(ContextCompat.checkSelfPermission(
+                getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED
+        )
+        {
+            ActivityCompat.requestPermissions(
+                    MapsActivity.this,
+                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                    REQUEST_CODE_LOCATION_PERMISSION
+            );
+        }
+
+        else{
+            startLocationService();
+        }
+    }
+
+    public void stopSharingLocation()
+    {
+        stopLocationService();
+
+
+    }
+
+
+    private boolean isLocationServiceRunning(){
+        ActivityManager activityManager =
+                (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        if(activityManager != null){
+            for (ActivityManager.RunningServiceInfo service :
+                    activityManager.getRunningServices(Integer.MAX_VALUE)){
+                if(LocationService.class.getName().equals(service.service.getClassName())){
+                    if (service.foreground)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        return false;
+    }
+    private void startLocationService(){
+        if(!isLocationServiceRunning())
+        {
+            Intent intent = new Intent(getApplicationContext(), LocationService.class);
+            intent.setAction(Constants.ACTION_START_LOCATION_SERVICE);
+            startService(intent);
+            Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void stopLocationService(){
+        if(isLocationServiceRunning())
+        {
+            Intent intent = new Intent(getApplicationContext(), LocationService.class);
+            intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
+            startService(intent);
+
+            Toast.makeText(this, "Location service stopped", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
 
 
@@ -605,6 +728,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         }
+
+        if(requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0)
+        {
+            startLocationService();
+        }else
+        {
+            Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -652,7 +783,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void onFinish() {
-                runnable.run();
+                startSharingLocation();
+
+
                 sendMessages();
 
                 if(CheckPermissions()) {
@@ -699,7 +832,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mButtonStartReset.setText("Stop");
     }
     private void resetTimer() {
-        handler.removeCallbacks(runnable);
+        stopSharingLocation();
+        Tracking.setVisibility(View.INVISIBLE);
         if(mRecorder != null)
         {
             mRecorder.stop();
@@ -709,11 +843,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(isRecording)
         {
             Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_LONG).show();
-            Tracking.setVisibility(View.INVISIBLE);
+
             isRecording = false;
         }
-
-        mCountDownTimer.cancel();
+        if(mCountDownTimer != null)
+        {
+            mCountDownTimer.cancel();
+        }
         mTimerRunning = false;
         mTimeLeftMillis = 0;
         updateCountdownText();
@@ -883,6 +1019,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         PolylineOptions rectLine = new PolylineOptions().width(15).color(Color.RED); //red color line & size=15
         for (int i = 0; i < directionPoints.size(); i++) {
             rectLine.add(directionPoints.get(i));
+            Log.d("DebugLog", String.valueOf(directionPoints.get(i)));
         }
         //clear the old line
         if (routePolyline != null) {
