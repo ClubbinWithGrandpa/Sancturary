@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
 import android.app.TimePickerDialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -80,6 +81,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -88,6 +92,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TimePickerDialog.OnTimeSetListener,
         EmergencyContacts.EmergencyContactsDialogListener {
@@ -463,6 +472,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+
+    private void DisplayTrack(String sSource, String sDestination)
+    {
+        try{
+            Uri uri = Uri.parse("https://www.google.co.in/maps/dir/" +sSource + "/" +sDestination);
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setPackage("com.google.android.apps.maps");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        }
+        catch (ActivityNotFoundException e)
+        {
+            Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps");
+            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+
+        }
+    }
+
     public void startSharingLocation(){
         if (ContextCompat.checkSelfPermission(
                 getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION
@@ -596,6 +625,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }};
 
 
+    public void showToast(final String toast)
+    {
+        runOnUiThread(() -> Toast.makeText(MapsActivity.this, toast, Toast.LENGTH_LONG).show());
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -604,8 +638,63 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.clear();
             mMap.addMarker(new MarkerOptions().position(place.getLatLng()).title(place.getName()));
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 12.0f));
-            Log.d("myTag", place.getName());
-            Log.d("myTag", String.valueOf(place.getLatLng()));
+
+            fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                @Override
+                public void onComplete(@NonNull Task<Location> task) {
+                    Location location = task.getResult();
+                    String srcLat = String.valueOf(location.getLatitude());
+                    String srcLong = String.valueOf(location.getLongitude());
+
+                    String desLat = String.valueOf(place.getLatLng().latitude);
+                    String desLong = String.valueOf(place.getLatLng().longitude);
+                    new Thread(new Runnable(){
+                        @Override
+                        public void run() {
+                            try {
+                                OkHttpClient client = new OkHttpClient().newBuilder()
+                                        .build();
+                                Request request = new Request.Builder()
+                                //.url("https://maps.googleapis.com/maps/api/distancematrix/json?origins=Scarborough%20Town%20Centre%2C%20DC&destinations=UTSC%2C%20NY&units=imperial&mode=transit&key=AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw")
+                                        .url("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + srcLat+   "%2C" + srcLong + "&destinations=" + desLat
+                                                + "%2C" + desLong     + "&units=imperial&mode=driving&key=AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw")
+
+                                        .method("GET", null)
+                                        .build();
+                                Response response = client.newCall(request).execute();
+                                String jsonData = response.body().string();
+                                JSONObject Jobject = new JSONObject(jsonData);
+                                JSONArray Jarray = Jobject.getJSONArray("rows");
+                                JSONObject object     = Jarray.getJSONObject(0);
+                                object.getJSONArray("elements");
+                                String distance = object.getJSONArray("elements").getJSONObject(0).getJSONObject("distance").get("text").toString();
+                                String duration = object.getJSONArray("elements").getJSONObject(0).getJSONObject("duration").get("text").toString();
+
+                                showToast("Distance: " + distance +"\n" + "ETA: " + duration);
+                                Log.d("haha1", distance);
+                                Toast.makeText(MapsActivity.this, "Distance: " + distance +"\n" + "ETA: " + duration, Toast.LENGTH_LONG).show();
+
+                                runOnUiThread(new Runnable() {
+                                    public void run() {
+                                        Toast.makeText(MapsActivity.this, "Toast message inside Thread", Toast.LENGTH_LONG).show();
+                                    }
+                                });
+
+
+                            }
+                            catch (Exception ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+                    }).start();
+                }
+            });
+
+
+
+
+
+
         }else if (requestCode == 100 && resultCode == AutocompleteActivity.RESULT_ERROR)
         {
             Status status = Autocomplete.getStatusFromIntent(data);
@@ -722,9 +811,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 boolean permissionToRecord = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 boolean permissionToStore = grantResults[1] ==  PackageManager.PERMISSION_GRANTED;
                 if (permissionToRecord && permissionToStore) {
-                    Toast.makeText(getApplicationContext(), "Permission Granted", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Permission Granted", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
                 }
             }
         }
@@ -809,7 +898,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Log.e(LOG_TAG, e.toString());
                     }
                     mRecorder.start();
-                    Toast.makeText(getApplicationContext(), "Recording Started", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Recording Started", Toast.LENGTH_SHORT).show();
                     isRecording = true;
                     Tracking.setVisibility(View.VISIBLE);
 
@@ -842,7 +931,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mRecorder = null;
         if(isRecording)
         {
-            Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_SHORT).show();
 
             isRecording = false;
         }
@@ -922,7 +1011,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         smsManager.sendTextMessage(GC4_num, null, info_loc, null, null);
                         count++;
                     }
-                    Toast.makeText(getApplicationContext(), "SMS sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "SMS sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
                 }
             }
         });
