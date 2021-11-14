@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Sanctuary</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string-array name="modes">
+        <item>Driving</item>
+        <item>Transit</item>
+        <item>Walking</item>
+    </string-array>
 </resources>

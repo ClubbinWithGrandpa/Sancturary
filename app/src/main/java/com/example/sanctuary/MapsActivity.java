@@ -35,10 +35,13 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -99,7 +102,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TimePickerDialog.OnTimeSetListener,
-        EmergencyContacts.EmergencyContactsDialogListener {
+        EmergencyContacts.EmergencyContactsDialogListener, AdapterView.OnItemSelectedListener {
     final long SEND_INTERVAL = 5000;
 
     private static final int REQUEST_CALL = 1;
@@ -121,6 +124,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button mShowPath;
     private boolean isShowingPath;
     boolean isRecording;
+    private Spinner mModeSpinner;
+    private String distanceMode;
     Handler handler;
     private CountDownTimer mCountDownTimer;
     private boolean mTimerRunning;
@@ -144,6 +149,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private int addwhich = 0;
     private static final int REQUEST_CODE_LOCATION_PERMISSION = 76;
+    private static final int REQUEST_BACKGROUND_LOCATION_PERMISSION = 420;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -162,7 +168,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         final MediaPlayer alarmSound = MediaPlayer.create(this, R.raw.alarm);
         alarmSound.setLooping(true);
 
-
+        distanceMode = "driving";
         alarmPlaying = false;
         isRecording = false;
         mEmergencyContactsRunning = false;
@@ -187,10 +193,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Tracking = findViewById(R.id.guardianModeAct3);
         mShowPath = findViewById(R.id.showPath);
         isShowingPath = false;
+        mModeSpinner = findViewById(R.id.mode);
 
 
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.modes, android.R.layout.simple_spinner_item);
 
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mModeSpinner.setAdapter(adapter);
+        mModeSpinner.setOnItemSelectedListener(this);
 
         if(isLocationServiceRunning())
         {
@@ -229,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
-
+        mModeSpinner.setVisibility(View.VISIBLE);
         editText = findViewById(R.id.edit_text);
         Places.initialize(getApplicationContext(), "AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw");
         editText.setFocusable(false);
@@ -246,6 +258,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mSetting.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
                 if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
                 }
@@ -444,16 +458,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else
                 {
+                    if(ContextCompat.checkSelfPermission(
+                            getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                    )
+                    {
+                        ActivityCompat.requestPermissions(
+                                MapsActivity.this,
+                                new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                REQUEST_BACKGROUND_LOCATION_PERMISSION
+                        );
+                    }else
+                    {
+                        if(CheckPermissions())
+                        {
+                            if(mTimerRunning || isLocationServiceRunning()) {
+                                resetTimer();
+                                mTextViewCountDown.setVisibility(View.INVISIBLE);
+                                mGuardianModeOn.setVisibility(View.INVISIBLE);
+                            }
+                            else {
+                                DialogFragment timePicker = new TimePickerFragment();
+                                timePicker.show(getSupportFragmentManager(), "time picker");
+                            }
+                        }
+                        else
+                        {
+                            RequestPermissions();
+                        }
 
-                    if(mTimerRunning || isLocationServiceRunning()) {
-                        resetTimer();
-                        mTextViewCountDown.setVisibility(View.INVISIBLE);
-                        mGuardianModeOn.setVisibility(View.INVISIBLE);
                     }
-                    else {
-                        DialogFragment timePicker = new TimePickerFragment();
-                        timePicker.show(getSupportFragmentManager(), "time picker");
-                    }
+
+
                 }
 
 
@@ -493,17 +529,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void startSharingLocation(){
-        if (ContextCompat.checkSelfPermission(
-                getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION
-        ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                    MapsActivity.this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    REQUEST_CODE_LOCATION_PERMISSION
-            );
-        }
-        else if(ContextCompat.checkSelfPermission(
+        if(ContextCompat.checkSelfPermission(
                 getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
         ) != PackageManager.PERMISSION_GRANTED
         )
@@ -511,7 +537,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(
                     MapsActivity.this,
                     new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
-                    REQUEST_CODE_LOCATION_PERMISSION
+                    REQUEST_BACKGROUND_LOCATION_PERMISSION
             );
         }
 
@@ -657,7 +683,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 Request request = new Request.Builder()
                                 //.url("https://maps.googleapis.com/maps/api/distancematrix/json?origins=Scarborough%20Town%20Centre%2C%20DC&destinations=UTSC%2C%20NY&units=imperial&mode=transit&key=AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw")
                                         .url("https://maps.googleapis.com/maps/api/distancematrix/json?origins=" + srcLat+   "%2C" + srcLong + "&destinations=" + desLat
-                                                + "%2C" + desLong     + "&units=imperial&mode=driving&key=AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw")
+                                                + "%2C" + desLong     + "&units=imperial&mode="+ distanceMode +"&key=AIzaSyBg_acHBZAQMZPuNdxH4pz_zt-AXUb_FZw")
 
                                         .method("GET", null)
                                         .build();
@@ -670,15 +696,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 String distance = object.getJSONArray("elements").getJSONObject(0).getJSONObject("distance").get("text").toString();
                                 String duration = object.getJSONArray("elements").getJSONObject(0).getJSONObject("duration").get("text").toString();
 
-                                showToast("Distance: " + distance +"\n" + "ETA: " + duration);
-                                Log.d("haha1", distance);
-                                Toast.makeText(MapsActivity.this, "Distance: " + distance +"\n" + "ETA: " + duration, Toast.LENGTH_LONG).show();
+                                String mode;
+                                if(distanceMode.equals("driving"))
+                                {
+                                    mode = "Driving";
+                                }else if(distanceMode.equals("transit"))
+                                {
+                                    mode = "Transit";
+                                }
+                                else
+                                {
+                                    mode = "Walking";
+                                }
 
-                                runOnUiThread(new Runnable() {
-                                    public void run() {
-                                        Toast.makeText(MapsActivity.this, "Toast message inside Thread", Toast.LENGTH_LONG).show();
-                                    }
-                                });
+
+                                showToast(mode + " Distance: " + distance +"\n" + mode+" ETA: " + duration);
+                                showToast("Marker -> botton-right bottom to get directions from Google Maps");
+
+
 
 
                             }
@@ -818,10 +853,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
 
-        if(requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults.length > 0)
+        if(requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
             startLocationService();
-        }else
+        }else if (requestCode == REQUEST_CODE_LOCATION_PERMISSION)
         {
             Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
         }
@@ -905,7 +940,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else
                 {
-                    RequestPermissions();
+
                 }
 
 
@@ -1128,4 +1163,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
+        ((TextView) parent.getChildAt(0)).setTextSize(12);
+        String text = parent.getItemAtPosition(position).toString();
+        if(text.equals("Driving"))
+        {
+            distanceMode = "driving";
+        }else if(text.equals("Transit"))
+        {
+            distanceMode = "transit";
+        }
+        else
+        {
+            distanceMode = "walking";
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
+    }
 }
