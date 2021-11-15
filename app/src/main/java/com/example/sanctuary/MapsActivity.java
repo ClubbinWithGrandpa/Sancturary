@@ -6,11 +6,15 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.FragmentActivity;
 
 import android.Manifest;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -24,6 +28,7 @@ import android.location.Location;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Environment;
@@ -145,6 +150,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private MediaPlayer mPlayer;
     private static final String LOG_TAG = "AudioRecording";
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
+    private int color;
 
 
     private int addwhich = 0;
@@ -194,7 +200,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mShowPath = findViewById(R.id.showPath);
         isShowingPath = false;
         mModeSpinner = findViewById(R.id.mode);
-
+        color = 2;
 
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -207,6 +213,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(isLocationServiceRunning())
         {
             mButtonStartReset.setText("Stop");
+
+            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
+
+
             mTextViewCountDown.setVisibility(View.VISIBLE);
             mGuardianModeOn.setVisibility(View.VISIBLE);
             Tracking.setVisibility(View.VISIBLE);
@@ -271,9 +281,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+
+        createNofiticationChannel();
+
+
+
         mAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
+
                 if(!alarmPlaying)
                 {
                     alarmSound.start();
@@ -475,6 +493,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             if(mTimerRunning || isLocationServiceRunning()) {
                                 resetTimer();
                                 mTextViewCountDown.setVisibility(View.INVISIBLE);
+                                mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_lightgreen));
                                 mGuardianModeOn.setVisibility(View.INVISIBLE);
                             }
                             else {
@@ -711,7 +730,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                                 showToast(mode + " Distance: " + distance +"\n" + mode+" ETA: " + duration);
-                                showToast("Marker -> botton-right bottom to get directions from Google Maps");
+                                showToast("Marker -> botton-right icon to get directions from Google Maps");
 
 
 
@@ -735,26 +754,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Status status = Autocomplete.getStatusFromIntent(data);
             Toast.makeText(getApplicationContext(), status.getStatusMessage(), Toast.LENGTH_SHORT).show();
         }
-        /*
-        else if(requestCode >= 0 && requestCode <= 14 && resultCode == -1)
-        {
-            Log.d("myTag", "here!");
-            Uri contactData = data.getData();
-            Cursor c = getContentResolver().query(contactData, null, null, null, null);
-            if (c.moveToFirst()) {
-                int phoneIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
-                String num = c.getString(phoneIndex);
-                int nameIndex = c.getColumnIndex(ContactsContract.CommonDataKinds.Identity.DISPLAY_NAME);
-                String name = c.getString(nameIndex);
-                if(requestCode < 10) {
-
-                }
-                else{
-
-                }
-            }
-        }
-        */
         else if (resultCode == -1)
         {
             Uri contactData = data.getData();
@@ -885,6 +884,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGuardianModeOn.setVisibility(View.VISIBLE);
         mTextViewCountDown.setVisibility(View.VISIBLE);
 
+        if(mTimeLeftMillis/1000 <= 299 && mTimeLeftMillis/1000 > 59)
+        {
+            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_yellow));
+        }else if(mTimeLeftMillis/1000 <= 59)
+        {
+            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
+        }
+        else
+        {
+            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_lightgreen));
+        }
+
+
+
         if(!CheckPermissions()) {
             RequestPermissions();
         }
@@ -902,6 +915,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onTick(long millisUntilFinished) {
                 mTimeLeftMillis = millisUntilFinished;
+                if(millisUntilFinished/1000 == 299)
+                {
+
+                    mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_yellow));
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
+                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                            .setContentTitle("Guardian mode is on")
+                            .setContentText("Guardian Mode will be activated in 5 minutes!")
+                            .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
+                    notificationManager.notify(100, builder.build());
+                }
+                else if(millisUntilFinished/1000 == 59)
+                {
+                    mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
+                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                            .setContentTitle("Guardian mode is on")
+                            .setContentText("Guardian Mode will be activated in 1 minutes!")
+                            .setPriority(NotificationCompat.PRIORITY_MAX);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
+                    notificationManager.notify(100, builder.build());
+                }
                 updateCountdownText();
             }
 
@@ -909,6 +947,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onFinish() {
                 startSharingLocation();
 
+                NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
+                        .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                        .setContentTitle("Guardian mode is on")
+                        .setContentText("Guardian Mode activated!")
+                        .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
+                notificationManager.notify(100, builder.build());
 
                 sendMessages();
 
@@ -1183,6 +1229,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+
+    }
+
+    private void createNofiticationChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            CharSequence name = "SanctuaryChannel";
+            String description = "Channel for the app Sanctuary";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            NotificationChannel channel = new NotificationChannel("Sanctuary", name, importance);
+            channel.setDescription(description);
+
+            NotificationManager notificationManager = getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
 
     }
 }

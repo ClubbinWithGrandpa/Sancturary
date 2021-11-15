@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
+    android:background="#1F1B24"
     tools:context=".SettingActivity">
 
 
@@ -27,19 +27,19 @@
             android:layout_height="wrap_content"
             android:text="Male"
 
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
 
             android:checked="true"/>
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioF"
             android:layout_width="94dp"
             android:layout_height="wrap_content"
             android:text="Female" />
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioOther"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
@@ -60,7 +60,7 @@
         app:layout_constraintVertical_bias="0.418">
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioA"
             android:layout_width="67dp"
             android:layout_height="wrap_content"
@@ -68,28 +68,28 @@
             android:checked="true"/>
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioB"
             android:layout_width="71dp"
             android:layout_height="wrap_content"
             android:text="B" />
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioO"
             android:layout_width="70dp"
             android:layout_height="wrap_content"
             android:text="O" />
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioAB"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
             android:text="AB" />
 
         <RadioButton
-            android:textColor="#A7A7A7"
+            android:textColor="#FFFFFF"
             android:id="@+id/radioOtherBlood"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
@@ -137,7 +137,7 @@
         android:id="@+id/textView4"
         android:layout_width="229dp"
         android:layout_height="37dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif"
         android:text="Guardian Mode Contacts"
 
         android:textSize="20dp"
@@ -151,7 +151,7 @@
         android:id="@+id/textView"
         android:layout_width="57dp"
         android:layout_height="32dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif"
         android:text="Name"
         android:textColor="#FFFFFF"
 
@@ -167,7 +167,7 @@
         android:id="@+id/textView2"
         android:layout_width="57dp"
         android:layout_height="32dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif"
         android:text="Age"
         android:textColor="#FFFFFF"
 
@@ -183,7 +183,7 @@
         android:id="@+id/textView3"
         android:layout_width="75dp"
         android:layout_height="32dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif"
         android:text="Gender"
         android:textColor="#FFFFFF"
 
@@ -199,7 +199,7 @@
         android:id="@+id/textView5"
         android:layout_width="116dp"
         android:layout_height="32dp"
-        android:fontFamily="sans-serif-black"
+        android:fontFamily="sans-serif"
         android:text="Blood Type"
         android:textColor="#FFFFFF"
 
