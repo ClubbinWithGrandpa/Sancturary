@@ -868,16 +868,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         int c_m = c.get(Calendar.MINUTE);
         int hours;
         int minutes;
-        if (hourOfDay < c_h) {
-            hours = hourOfDay + 24 - c_h;
-        }else {
-            hours = hourOfDay - c_h;
-        }
+        Log.d("yeet", String.valueOf(hourOfDay));
+        Log.d("yeet", String.valueOf(minute));
+
+
         if (minute < c_m) {
-            minutes = minute + 24 - c_m;
+            minutes = minute + 60 - c_m;
+            if (hourOfDay-1 < c_h) {
+                hours = hourOfDay-1 + 24 - c_h;
+            }else {
+                hours = hourOfDay-1 - c_h;
+            }
         }else {
             minutes = minute - c_m;
+            if (hourOfDay < c_h) {
+                hours = hourOfDay + 24 - c_h;
+            }else {
+                hours = hourOfDay - c_h;
+            }
         }
+
+
+
+
+
         mTimeLeftMillis = hours*60*60*1000 + minutes*60*1000;
         guardianLocations = new ArrayList<LatLng>();
         startTimer();
