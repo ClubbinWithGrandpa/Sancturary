@@ -74,38 +74,22 @@
         map:layout_constraintVertical_bias="0.499" />
 
     <TextView
-        android:id="@+id/textView_countdown"
-        android:layout_width="235dp"
-        android:layout_height="85dp"
-        android:text="00:00:00"
-        android:textColor="@color/quantum_lightgreen"
-
-        android:textSize="60sp"
-
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.575"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.144" />
-
-    <TextView
 
         android:id="@+id/GuardianModeAct"
-        android:layout_width="169dp"
-        android:layout_height="42dp"
+        android:layout_width="292dp"
+        android:layout_height="66dp"
         android:background="@drawable/myrect"
         android:elevation="2dp"
-        android:text="Guardian Mode ON"
+        android:text="Guardian Mode Activated"
         android:textColor="#BB86FC"
-        android:textSize="20sp"
+        android:textSize="25sp"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.277" />
+        app:layout_constraintVertical_bias="0.176" />
 
     <TextView
 

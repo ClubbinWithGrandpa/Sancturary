@@ -1,13 +1,19 @@
 package com.example.sanctuary;
 
+import static android.Manifest.permission.RECORD_AUDIO;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,9 +23,12 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Switch;
+import android.widget.Toast;
 
 public class SettingActivity extends AppCompatActivity implements EmergencyContacts.EmergencyContactsDialogListener{
     private Button mSave;
@@ -37,6 +46,9 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
     private Button mGuardianContact2Delete;
     private Button mGuardianContact3Delete;
     private Button mGuardianContact4Delete;
+    private Switch switchAllowAudio;
+    public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
+    private Boolean allowAudio;
     SharedPreferences sp;
     private int addwhich = 0;
 
@@ -59,6 +71,57 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact2Delete = findViewById(R.id.GMC2E);
         mGuardianContact3Delete = findViewById(R.id.GMC3E);
         mGuardianContact4Delete = findViewById(R.id.GMC4E);
+        switchAllowAudio = findViewById(R.id.switchAudio);
+
+        if(sp.getString("allowAudio", "").equals(""))
+        {
+            allowAudio = false;
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("allowAudio", "false");
+            editor.commit();
+            switchAllowAudio.setChecked(false);
+        }
+        else
+        {
+            if(sp.getString("allowAudio", "").equals("true"))
+            {
+                allowAudio = true;
+                switchAllowAudio.setChecked(true);
+
+            }
+        }
+
+        switchAllowAudio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                allowAudio = switchAllowAudio.isChecked();
+                if(allowAudio == true)
+                {
+                    if(CheckPermissions())
+                    {
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString("allowAudio", allowAudio.toString());
+                        editor.commit();
+                        switchAllowAudio.setChecked(allowAudio);
+                    }
+                    else
+                    {
+                        RequestPermissions();
+                    }
+                }
+                else
+                {
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("allowAudio", allowAudio.toString());
+                    editor.commit();
+                }
+
+
+
+            }
+        });
+
+
 
         String GC1_name = sp.getString("GC1_name", "");
         String GC2_name = sp.getString("GC2_name", "");
@@ -303,6 +366,36 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
             }
         }
 
+    }
+    private void RequestPermissions() {
+        ActivityCompat.requestPermissions(SettingActivity.this, new String[]{RECORD_AUDIO, WRITE_EXTERNAL_STORAGE}, REQUEST_AUDIO_PERMISSION_CODE);
+    }
+    public boolean CheckPermissions() {
+        int result = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
+        int result1 = ContextCompat.checkSelfPermission(getApplicationContext(), RECORD_AUDIO);
+        return result == PackageManager.PERMISSION_GRANTED && result1 == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_AUDIO_PERMISSION_CODE)
+        {
+            if (grantResults.length> 0) {
+                boolean permissionToRecord = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean permissionToStore = grantResults[1] ==  PackageManager.PERMISSION_GRANTED;
+                if (permissionToRecord && permissionToStore) {
+                    Toast.makeText(getApplicationContext(), "Permission Granted", Toast.LENGTH_SHORT).show();
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("allowAudio", "true");
+                    editor.commit();
+                    switchAllowAudio.setChecked(allowAudio);
+                } else {
+                    Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
+                    switchAllowAudio.setChecked(false);
+                }
+            }
+        }
     }
 
     @Override

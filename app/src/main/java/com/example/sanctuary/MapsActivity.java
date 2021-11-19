@@ -38,15 +38,18 @@ import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.SearchView;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -106,14 +109,13 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, TimePickerDialog.OnTimeSetListener,
+public class MapsActivity extends FragmentActivity implements OnMapReadyCallback,
         EmergencyContacts.EmergencyContactsDialogListener, AdapterView.OnItemSelectedListener {
     final long SEND_INTERVAL = 5000;
 
     private static final int REQUEST_CALL = 1;
-    private TextView mTextViewCountDown;
-    TextView Tracking;
-    private Button mButtonStartReset;
+    static TextView Tracking;
+    public static Button mButtonStartReset;
     private Button mEmergencyCall;
     private Button mEmergencyCall1;
     private Button mEmergencyCall2;
@@ -136,7 +138,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean mTimerRunning;
     private boolean mEmergencyContactsRunning;
     private long mTimeLeftMillis ;
-    private TextView mGuardianModeOn;
+    public static TextView mGuardianModeOn;
     private boolean alarmPlaying;
     SharedPreferences sp;
     FusedLocationProviderClient fusedLocationProviderClient;
@@ -147,14 +149,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     ArrayList<Double> LocationServiceArray;
     Polyline routePolyline;
     private MediaRecorder mRecorder;
-    private MediaPlayer mPlayer;
     private static final String LOG_TAG = "AudioRecording";
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
-    private int color;
+    private Switch switchAllowAudio;
+    private Switch switchAllowTap;
+    private boolean allowAudio;
+    private boolean allowTap;
 
 
     private int addwhich = 0;
-    private static final int REQUEST_CODE_LOCATION_PERMISSION = 76;
+
     private static final int REQUEST_BACKGROUND_LOCATION_PERMISSION = 420;
 
     @Override
@@ -181,7 +185,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        mTextViewCountDown = findViewById(R.id.textView_countdown);
         mButtonStartReset = findViewById(R.id.Guardian);
         mGuardianModeOn = findViewById(R.id.GuardianModeAct);
         mEmergencyCall = findViewById(R.id.emergencyCall);
@@ -200,8 +203,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mShowPath = findViewById(R.id.showPath);
         isShowingPath = false;
         mModeSpinner = findViewById(R.id.mode);
-        color = 2;
-
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.modes, android.R.layout.simple_spinner_item);
@@ -214,10 +215,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             mButtonStartReset.setText("Stop");
 
-            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
-
-
-            mTextViewCountDown.setVisibility(View.VISIBLE);
             mGuardianModeOn.setVisibility(View.VISIBLE);
             Tracking.setVisibility(View.VISIBLE);
 
@@ -280,6 +277,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
+
+
 
 
         createNofiticationChannel();
@@ -488,22 +487,54 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         );
                     }else
                     {
-                        if(CheckPermissions())
+                        TinyDB tinydb = new TinyDB(getApplicationContext());
+                        String isActivated = tinydb.getString("isActivated");
+                        if(isActivated.equals("true"))
                         {
-                            if(mTimerRunning || isLocationServiceRunning()) {
-                                resetTimer();
-                                mTextViewCountDown.setVisibility(View.INVISIBLE);
-                                mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_lightgreen));
-                                mGuardianModeOn.setVisibility(View.INVISIBLE);
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary")
+                                    .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                    .setContentTitle("Guardian mode is off")
+                                    .setContentText("Guardian Mode deactivated!")
+                                    .setPriority(NotificationCompat.PRIORITY_MAX);
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                            notificationManager.notify(100, builder.build());
+                            Tracking.setVisibility(View.INVISIBLE);
+                            if(mRecorder != null)
+                            {
+                                mRecorder.stop();
+                                mRecorder.release();
                             }
-                            else {
-                                DialogFragment timePicker = new TimePickerFragment();
-                                timePicker.show(getSupportFragmentManager(), "time picker");
+                            mRecorder = null;
+                            if(isRecording)
+                            {
+                                Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_SHORT).show();
+
+                                isRecording = false;
                             }
+                            mButtonStartReset.setText("Guardian");
+                            Tracking.setVisibility(View.INVISIBLE);
+
+                            mGuardianModeOn.setVisibility(View.INVISIBLE);
+                            isActivated = "false";
+                            tinydb.putString("isActivated", isActivated);
                         }
                         else
                         {
-                            RequestPermissions();
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary")
+                                    .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                    .setContentTitle("Guardian mode is on")
+                                    .setContentText("Guardian Mode activated!")
+                                    .setPriority(NotificationCompat.PRIORITY_MAX);
+
+                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                            notificationManager.notify(100, builder.build());
+
+                            mButtonStartReset.setText("Stop");
+                            Tracking.setVisibility(View.VISIBLE);
+
+                            mGuardianModeOn.setVisibility(View.VISIBLE);
+                            isActivated = "true";
+                            tinydb.putString("isActivated", isActivated);
                         }
 
                     }
@@ -516,9 +547,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
-        updateCountdownText();
 
-
+        startSharingLocation();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -528,24 +558,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    private void DisplayTrack(String sSource, String sDestination)
-    {
-        try{
-            Uri uri = Uri.parse("https://www.google.co.in/maps/dir/" +sSource + "/" +sDestination);
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            intent.setPackage("com.google.android.apps.maps");
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-        }
-        catch (ActivityNotFoundException e)
-        {
-            Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps");
-            Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-
-        }
-    }
 
     public void startSharingLocation(){
         if(ContextCompat.checkSelfPermission(
@@ -613,61 +625,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-
-    public Runnable runnable = new Runnable() {
-        public void run() {
-
-
-            fusedLocationProviderClient
-                    .getLastLocation().
-                    addOnCompleteListener(new OnCompleteListener<Location>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            Location location = task.getResult();
-                            if(location != null)
-                            {
-                                LatLng cur = new LatLng(location.getLatitude(), location.getLongitude());
-                                guardianLocations.add(cur);
-                                handleGetDirectionsResult(guardianLocations);
-
-                                String GC1_name = sp.getString("GC1_name", "");
-                                String GC2_name = sp.getString("GC2_name", "");
-                                String GC3_name = sp.getString("GC3_name", "");
-                                String GC4_name = sp.getString("GC4_name", "");
-
-                                String GC1_num = sp.getString("GC1_number", "");
-                                String GC2_num = sp.getString("GC2_number", "");
-                                String GC3_num = sp.getString("GC3_number", "");
-                                String GC4_num = sp.getString("GC4_number", "");
-
-                                SmsManager smsManager = SmsManager.getDefault();
-
-                                StringBuffer smsBody = new StringBuffer();
-                                smsBody.append("http://maps.google.com?q=");
-                                smsBody.append(location.getLatitude());
-                                smsBody.append(",");
-                                smsBody.append(location.getLongitude());
-
-                                if(!GC1_name.equals("")){
-                                    smsManager.sendTextMessage(GC1_num, null, smsBody.toString(), null, null);
-                                }
-                                if(!GC2_name.equals("")){
-                                    smsManager.sendTextMessage(GC2_num, null, smsBody.toString(), null, null);
-                                }
-                                if(!GC3_name.equals("")){
-                                    smsManager.sendTextMessage(GC3_num, null, smsBody.toString(), null, null);
-                                }
-                                if(!GC4_name.equals("")){
-                                    smsManager.sendTextMessage(GC4_num, null, smsBody.toString(), null, null);
-                                }
-                            }
-
-
-
-                        }
-                    });
-            handler.postDelayed(runnable, SEND_INTERVAL);
-        }};
 
 
     public void showToast(final String toast)
@@ -850,73 +807,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(getApplicationContext(),"Permission Denied",Toast.LENGTH_SHORT).show();
                 }
             }
-        }
-
-        if(requestCode == REQUEST_CODE_LOCATION_PERMISSION && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+        }else if(requestCode == REQUEST_BACKGROUND_LOCATION_PERMISSION && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
         {
             startLocationService();
-        }else if (requestCode == REQUEST_CODE_LOCATION_PERMISSION)
-        {
-            Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
         }
+
+
     }
 
-    @Override
-    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-        Calendar c = Calendar.getInstance();
-        int c_h = c.get(Calendar.HOUR_OF_DAY);
-        int c_m = c.get(Calendar.MINUTE);
-        int hours;
-        int minutes;
-        Log.d("yeet", String.valueOf(hourOfDay));
-        Log.d("yeet", String.valueOf(minute));
 
-
-        if (minute < c_m) {
-            minutes = minute + 60 - c_m;
-            if (hourOfDay-1 < c_h) {
-                hours = hourOfDay-1 + 24 - c_h;
-            }else {
-                hours = hourOfDay-1 - c_h;
-            }
-        }else {
-            minutes = minute - c_m;
-            if (hourOfDay < c_h) {
-                hours = hourOfDay + 24 - c_h;
-            }else {
-                hours = hourOfDay - c_h;
-            }
-        }
-
-
-
-
-
-        mTimeLeftMillis = hours*60*60*1000 + minutes*60*1000;
-        guardianLocations = new ArrayList<LatLng>();
-        startTimer();
-        mGuardianModeOn.setVisibility(View.VISIBLE);
-        mTextViewCountDown.setVisibility(View.VISIBLE);
-
-        if(mTimeLeftMillis/1000 <= 299 && mTimeLeftMillis/1000 > 59)
-        {
-            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_yellow));
-        }else if(mTimeLeftMillis/1000 <= 59)
-        {
-            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
-        }
-        else
-        {
-            mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_lightgreen));
-        }
-
-
-
-        if(!CheckPermissions()) {
-            RequestPermissions();
-        }
-
-    }
 
     private void openDialog(int which){
         addwhich = which;
@@ -932,7 +831,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if(millisUntilFinished/1000 == 299)
                 {
 
-                    mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_yellow));
+
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
                             .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
                             .setContentTitle("Guardian mode is on")
@@ -944,7 +843,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 else if(millisUntilFinished/1000 == 59)
                 {
-                    mTextViewCountDown.setTextColor(getResources().getColor(R.color.quantum_googred));
+
                     NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
                             .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
                             .setContentTitle("Guardian mode is on")
@@ -954,25 +853,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
                     notificationManager.notify(100, builder.build());
                 }
-                updateCountdownText();
+
             }
 
             @Override
             public void onFinish() {
                 startSharingLocation();
 
-                NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
-                        .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                        .setContentTitle("Guardian mode is on")
-                        .setContentText("Guardian Mode activated!")
-                        .setPriority(NotificationCompat.PRIORITY_HIGH);
 
-                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
-                notificationManager.notify(100, builder.build());
-
-                sendMessages();
-
-                if(CheckPermissions()) {
                     mRecorder = new MediaRecorder();
                     mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
                     mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
@@ -997,11 +885,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     isRecording = true;
                     Tracking.setVisibility(View.VISIBLE);
 
-                }
-                else
-                {
-
-                }
 
 
 
@@ -1015,50 +898,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         mButtonStartReset.setText("Stop");
     }
-    private void resetTimer() {
-        stopSharingLocation();
-        Tracking.setVisibility(View.INVISIBLE);
-        if(mRecorder != null)
-        {
-            mRecorder.stop();
-            mRecorder.release();
-        }
-        mRecorder = null;
-        if(isRecording)
-        {
-            Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_SHORT).show();
 
-            isRecording = false;
-        }
-        if(mCountDownTimer != null)
-        {
-            mCountDownTimer.cancel();
-        }
-        mTimerRunning = false;
-        mTimeLeftMillis = 0;
-        updateCountdownText();
-        mButtonStartReset.setText("Guardian");
 
-    }
-
-    private void updateCountdownText(){
-        int hours = (int) mTimeLeftMillis/1000/60/60;
-        int minutes = (int) mTimeLeftMillis/1000%3600/60;
-        int seconds = (int) mTimeLeftMillis/1000%60;
-        String timeLeftFormatted = String.format(Locale.getDefault(),"%02d:%02d:%02d", hours, minutes, seconds);
-        mTextViewCountDown.setText(timeLeftFormatted);
-
-    }
-
-    private void sendMessages(){
-        if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED) {
-            sendActualMessages();
-        }
-        else{
-            ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
-        }
-
-    }
     private void sendActualMessages() {
         String GC1_name = sp.getString("GC1_name", "");
         String GC2_name = sp.getString("GC2_name", "");
@@ -1199,6 +1040,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+
+
     public void handleGetDirectionsResult(ArrayList<LatLng> directionPoints) {
         PolylineOptions rectLine = new PolylineOptions().width(15).color(Color.RED); //red color line & size=15
         for (int i = 0; i < directionPoints.size(); i++) {
@@ -1213,20 +1056,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         routePolyline = mMap.addPolyline(rectLine);
     }
 
-    public boolean CheckPermissions() {
-        int result = ContextCompat.checkSelfPermission(getApplicationContext(), WRITE_EXTERNAL_STORAGE);
-        int result1 = ContextCompat.checkSelfPermission(getApplicationContext(), RECORD_AUDIO);
-        return result == PackageManager.PERMISSION_GRANTED && result1 == PackageManager.PERMISSION_GRANTED;
-    }
-    private void RequestPermissions() {
-        ActivityCompat.requestPermissions(MapsActivity.this, new String[]{RECORD_AUDIO, WRITE_EXTERNAL_STORAGE}, REQUEST_AUDIO_PERMISSION_CODE);
-    }
 
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
-        ((TextView) parent.getChildAt(0)).setTextSize(12);
+        if(parent.getChildAt(0) != null)
+        {
+            ((TextView) parent.getChildAt(0)).setTextColor(Color.WHITE);
+            ((TextView) parent.getChildAt(0)).setTextSize(12);
+        }
         String text = parent.getItemAtPosition(position).toString();
         if(text.equals("Driving"))
         {
