@@ -114,7 +114,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     final long SEND_INTERVAL = 5000;
 
     private static final int REQUEST_CALL = 1;
-    static TextView Tracking;
     public static Button mButtonStartReset;
     private Button mEmergencyCall;
     private Button mEmergencyCall1;
@@ -129,6 +128,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button mAlarm;
     private Button mSetting;
     private Button mShowPath;
+    private Button mStart;
+    private Button mDelay;
+    private Button mArrive;
+    private Button mCancel;
+    private Place destination;
+    private String ETA;
     private boolean isShowingPath;
     boolean isRecording;
     private Spinner mModeSpinner;
@@ -172,7 +177,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
 
-
+        destination = null;
+        ETA = null;
 
 
         final MediaPlayer alarmSound = MediaPlayer.create(this, R.raw.alarm);
@@ -199,7 +205,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDEC2 = findViewById(R.id.DEC2);
         mDEC3 = findViewById(R.id.DEC3);
         mAlarm = findViewById(R.id.alarm);
-        Tracking = findViewById(R.id.guardianModeAct3);
         mShowPath = findViewById(R.id.showPath);
         isShowingPath = false;
         mModeSpinner = findViewById(R.id.mode);
@@ -210,13 +215,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mModeSpinner.setAdapter(adapter);
         mModeSpinner.setOnItemSelectedListener(this);
+        mStart = findViewById(R.id.buttonStart);
+        mDelay = findViewById(R.id.ButtonDelay);
+        mArrive = findViewById(R.id.buttonArrive);
+        mCancel = findViewById(R.id.buttonCancel);
 
         if(isLocationServiceRunning())
         {
             mButtonStartReset.setText("Stop");
 
             mGuardianModeOn.setVisibility(View.VISIBLE);
-            Tracking.setVisibility(View.VISIBLE);
 
         }
 
@@ -283,7 +291,161 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         createNofiticationChannel();
 
+        if(sp.getString("allowTracking", "").equals(""))
+        {
+          mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape2));
 
+        }
+        else
+        {
+            if(sp.getString("allowTracking", "").equals("true"))
+            {
+                mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape));
+            }
+            else if(sp.getString("allowTracking", "").equals("false"))
+            {
+                mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape2));
+            }
+        }
+
+
+        mStart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SmsManager smsManager = SmsManager.getDefault();
+                fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        Location location = task.getResult();
+                        int count = 0;
+                        String GC1_name = sp.getString("GC1_name", "");
+                        String GC2_name = sp.getString("GC2_name", "");
+                        String GC3_name = sp.getString("GC3_name", "");
+                        String GC4_name = sp.getString("GC4_name", "");
+
+                        String GC1_num = sp.getString("GC1_number", "");
+                        String GC2_num = sp.getString("GC2_number", "");
+                        String GC3_num = sp.getString("GC3_number", "");
+                        String GC4_num = sp.getString("GC4_number", "");
+
+
+                        String helpMessage = "I am at http://maps.google.com?q=" + location.getLatitude() + "," + location.getLongitude()
+                                + " and I am heading to " + destination.getName() +" by " + distanceMode +", should be there in " + ETA;
+
+                        if(!GC1_name.equals("")){
+                            smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC2_name.equals("")){
+                            smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC3_name.equals("")){
+                            smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC4_name.equals("")){
+                            smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        Toast.makeText(getApplicationContext(), "SMS start message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
+
+
+                    }
+                });
+                mStart.setVisibility(View.INVISIBLE);
+                mCancel.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        mDelay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int count = 0;
+                SmsManager smsManager = SmsManager.getDefault();
+                String GC1_name = sp.getString("GC1_name", "");
+                String GC2_name = sp.getString("GC2_name", "");
+                String GC3_name = sp.getString("GC3_name", "");
+                String GC4_name = sp.getString("GC4_name", "");
+
+                String GC1_num = sp.getString("GC1_number", "");
+                String GC2_num = sp.getString("GC2_number", "");
+                String GC3_num = sp.getString("GC3_number", "");
+                String GC4_num = sp.getString("GC4_number", "");
+
+
+                String helpMessage = "I am on my way to " + destination.getName() +", "+ "but there is a delay.";
+
+                if(!GC1_name.equals("")){
+                    smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC2_name.equals("")){
+                    smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC3_name.equals("")){
+                    smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC4_name.equals("")){
+                    smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
+                    count++;
+                }
+                Toast.makeText(getApplicationContext(), "SMS delay message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
+        mArrive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int count = 0;
+                SmsManager smsManager = SmsManager.getDefault();
+                String GC1_name = sp.getString("GC1_name", "");
+                String GC2_name = sp.getString("GC2_name", "");
+                String GC3_name = sp.getString("GC3_name", "");
+                String GC4_name = sp.getString("GC4_name", "");
+
+                String GC1_num = sp.getString("GC1_number", "");
+                String GC2_num = sp.getString("GC2_number", "");
+                String GC3_num = sp.getString("GC3_number", "");
+                String GC4_num = sp.getString("GC4_number", "");
+
+
+                String helpMessage = "I have safely arrived at " + destination.getName() + "!";
+
+                if(!GC1_name.equals("")){
+                    smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC2_name.equals("")){
+                    smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC3_name.equals("")){
+                    smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
+                    count++;
+                }
+                if(!GC4_name.equals("")){
+                    smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
+                    count++;
+                }
+                Toast.makeText(getApplicationContext(), "SMS arrive message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
+                mDelay.setVisibility(View.INVISIBLE);
+                mArrive.setVisibility(View.INVISIBLE);
+            }
+        });
+
+        mCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mStart.setVisibility(View.INVISIBLE);
+                mDelay.setVisibility(View.INVISIBLE);
+                mArrive.setVisibility(View.INVISIBLE);
+                mCancel.setVisibility(View.INVISIBLE);
+            }
+        });
 
         mAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -470,77 +632,107 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
-                if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(getApplicationContext(), "Please complete your personal info in settings please.", Toast.LENGTH_SHORT).show();
+                if (sp.getString("allowTracking", "").equals("true"))
+                {
+                    if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                        Toast.makeText(getApplicationContext(), "Please complete your personal info in settings please.", Toast.LENGTH_SHORT).show();
+                    }
+                    else
+                    {
+                        if(ContextCompat.checkSelfPermission(
+                                getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                        )
+                        {
+                            ActivityCompat.requestPermissions(
+                                    MapsActivity.this,
+                                    new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                    REQUEST_BACKGROUND_LOCATION_PERMISSION
+                            );
+                        }else
+                        {
+                            TinyDB tinydb = new TinyDB(getApplicationContext());
+                            String isActivated = tinydb.getString("isActivated");
+                            if(isActivated.equals("true"))
+                            {
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary");
+                                if(sp.getString("allowAudio", "").equals("true"))
+                                {
+                                    builder
+                                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                            .setContentTitle("Guardian mode is off")
+                                            .setContentText("Guardian Mode and audio recording deactivated!")
+                                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                                }
+                                else
+                                {
+                                    builder
+                                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                            .setContentTitle("Guardian mode is off")
+                                            .setContentText("Guardian Mode deactivated!")
+                                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                                }
+                                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                notificationManager.notify(100, builder.build());
+                                if(mRecorder != null)
+                                {
+                                    mRecorder.stop();
+                                    mRecorder.release();
+                                }
+                                mRecorder = null;
+                                if(isRecording)
+                                {
+                                    Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_SHORT).show();
+
+                                    isRecording = false;
+                                }
+                                mButtonStartReset.setText("Guardian");
+
+                                mGuardianModeOn.setVisibility(View.INVISIBLE);
+                                isActivated = "false";
+                                tinydb.putString("isActivated", isActivated);
+                            }
+                            else
+                            {
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary");
+                                if(sp.getString("allowAudio", "").equals("true"))
+                                {
+                                    builder
+                                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                            .setContentTitle("Guardian mode is on")
+                                            .setContentText("Guardian Mode and audio recording activated!")
+                                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                                }
+                                else
+                                {
+                                    builder
+                                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                            .setContentTitle("Guardian mode is on")
+                                            .setContentText("Guardian Mode activated!")
+                                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                                }
+
+                                NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
+                                notificationManager.notify(100, builder.build());
+
+                                mButtonStartReset.setText("Stop");
+
+                                mGuardianModeOn.setVisibility(View.VISIBLE);
+                                isActivated = "true";
+                                tinydb.putString("isActivated", isActivated);
+                            }
+
+                        }
+
+
+                    }
                 }
                 else
                 {
-                    if(ContextCompat.checkSelfPermission(
-                            getApplicationContext(), Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                    )
-                    {
-                        ActivityCompat.requestPermissions(
-                                MapsActivity.this,
-                                new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
-                                REQUEST_BACKGROUND_LOCATION_PERMISSION
-                        );
-                    }else
-                    {
-                        TinyDB tinydb = new TinyDB(getApplicationContext());
-                        String isActivated = tinydb.getString("isActivated");
-                        if(isActivated.equals("true"))
-                        {
-                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary")
-                                    .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                                    .setContentTitle("Guardian mode is off")
-                                    .setContentText("Guardian Mode deactivated!")
-                                    .setPriority(NotificationCompat.PRIORITY_MAX);
-                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                            notificationManager.notify(100, builder.build());
-                            Tracking.setVisibility(View.INVISIBLE);
-                            if(mRecorder != null)
-                            {
-                                mRecorder.stop();
-                                mRecorder.release();
-                            }
-                            mRecorder = null;
-                            if(isRecording)
-                            {
-                                Toast.makeText(getApplicationContext(), "Recording Stopped", Toast.LENGTH_SHORT).show();
-
-                                isRecording = false;
-                            }
-                            mButtonStartReset.setText("Guardian");
-                            Tracking.setVisibility(View.INVISIBLE);
-
-                            mGuardianModeOn.setVisibility(View.INVISIBLE);
-                            isActivated = "false";
-                            tinydb.putString("isActivated", isActivated);
-                        }
-                        else
-                        {
-                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), "Sanctuary")
-                                    .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                                    .setContentTitle("Guardian mode is on")
-                                    .setContentText("Guardian Mode activated!")
-                                    .setPriority(NotificationCompat.PRIORITY_MAX);
-
-                            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(getApplicationContext());
-                            notificationManager.notify(100, builder.build());
-
-                            mButtonStartReset.setText("Stop");
-                            Tracking.setVisibility(View.VISIBLE);
-
-                            mGuardianModeOn.setVisibility(View.VISIBLE);
-                            isActivated = "true";
-                            tinydb.putString("isActivated", isActivated);
-                        }
-
-                    }
-
-
+                    showToast("Please allow real-time location tracking in the setting");
                 }
+
+
 
 
 
@@ -575,13 +767,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         else{
             startLocationService();
         }
-    }
-
-    public void stopSharingLocation()
-    {
-        stopLocationService();
-
-
     }
 
 
@@ -629,8 +814,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void showToast(final String toast)
     {
-        runOnUiThread(() -> Toast.makeText(MapsActivity.this, toast, Toast.LENGTH_LONG).show());
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+
+                Toast.makeText(MapsActivity.this, toast, Toast.LENGTH_LONG).show();
+
+
+            }
+        });
+
     }
+
+
+    public void onDestinationSet(Place dest, String duration)
+    {
+        runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                destination = dest;
+                ETA = duration;
+                mStart.setVisibility(View.VISIBLE);
+                mDelay.setVisibility(View.VISIBLE);
+                mArrive.setVisibility(View.VISIBLE);
+                mCancel.setVisibility(View.VISIBLE);
+
+
+
+
+            }
+        });
+
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -671,7 +889,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 object.getJSONArray("elements");
                                 String distance = object.getJSONArray("elements").getJSONObject(0).getJSONObject("distance").get("text").toString();
                                 String duration = object.getJSONArray("elements").getJSONObject(0).getJSONObject("duration").get("text").toString();
-
+                                ETA = duration;
                                 String mode;
                                 if(distanceMode.equals("driving"))
                                 {
@@ -687,8 +905,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                                 showToast(mode + " Distance: " + distance +"\n" + mode+" ETA: " + duration);
-                                showToast("Marker -> botton-right icon to get directions from Google Maps");
 
+                                onDestinationSet(place, duration);
 
 
 
@@ -823,81 +1041,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ecDiaglog.show(getSupportFragmentManager(), "ecDiaglog");
     }
 
-    private void startTimer() {
-        mCountDownTimer = new CountDownTimer(mTimeLeftMillis, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                mTimeLeftMillis = millisUntilFinished;
-                if(millisUntilFinished/1000 == 299)
-                {
-
-
-                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
-                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                            .setContentTitle("Guardian mode is on")
-                            .setContentText("Guardian Mode will be activated in 5 minutes!")
-                            .setPriority(NotificationCompat.PRIORITY_HIGH);
-
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
-                    notificationManager.notify(100, builder.build());
-                }
-                else if(millisUntilFinished/1000 == 59)
-                {
-
-                    NotificationCompat.Builder builder = new NotificationCompat.Builder(MapsActivity.this, "Sanctuary")
-                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                            .setContentTitle("Guardian mode is on")
-                            .setContentText("Guardian Mode will be activated in 1 minutes!")
-                            .setPriority(NotificationCompat.PRIORITY_MAX);
-
-                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(MapsActivity.this);
-                    notificationManager.notify(100, builder.build());
-                }
-
-            }
-
-            @Override
-            public void onFinish() {
-                startSharingLocation();
-
-
-                    mRecorder = new MediaRecorder();
-                    mRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
-                    mRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-                    mRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
-
-                    Context ctx = getApplicationContext();
-                    File audioDir = new File(ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC), "AudioMemos");
-                    Log.d("mt",ctx.getExternalFilesDir(Environment.DIRECTORY_MUSIC).getAbsolutePath());
-                    audioDir.mkdirs();
-                    String audioDirPath = audioDir.getAbsolutePath();
-                    File recordingFile = new File(audioDirPath + "/" + "a" + ".m4a");
-
-                    Log.d("myTag", recordingFile.getAbsolutePath());
-                    mRecorder.setOutputFile(recordingFile.getAbsolutePath());
-                    try {
-                        mRecorder.prepare();
-                    } catch (IOException e) {
-                        Log.e(LOG_TAG, e.toString());
-                    }
-                    mRecorder.start();
-                    Toast.makeText(getApplicationContext(), "Recording Started", Toast.LENGTH_SHORT).show();
-                    isRecording = true;
-                    Tracking.setVisibility(View.VISIBLE);
-
-
-
-
-            }
-        }.start();
-        mTimerRunning = true;
-
-
-
-
-
-        mButtonStartReset.setText("Stop");
-    }
 
 
     private void sendActualMessages() {

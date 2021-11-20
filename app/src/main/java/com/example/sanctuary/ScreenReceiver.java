@@ -36,6 +36,7 @@ public class ScreenReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, final Intent intent) {
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(context);
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
         {
@@ -72,16 +73,28 @@ public class ScreenReceiver extends BroadcastReceiver {
                 {
                     isActivated = "true";
                     tinydb.putString("isActivated", isActivated);
-                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "Sanctuary")
-                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                            .setContentTitle("Guardian mode is on")
-                            .setContentText("Guardian Mode activated!")
-                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "Sanctuary");
+                    if(sp.getString("allowAudio", "").equals("true"))
+                    {
+                        builder
+                                .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                .setContentTitle("Guardian mode is on")
+                                .setContentText("Guardian Mode and audio recording activated!")
+                                .setPriority(NotificationCompat.PRIORITY_MAX);
+                    }
+                    else
+                    {
+                        builder
+                                .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                .setContentTitle("Guardian mode is on")
+                                .setContentText("Guardian Mode activated!")
+                                .setPriority(NotificationCompat.PRIORITY_MAX);
+                    }
+
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                     notificationManager.notify(100, builder.build());
                     MapsActivity.mButtonStartReset.setText("Stop");
-                    MapsActivity.Tracking.setVisibility(View.VISIBLE);
                     MapsActivity.mGuardianModeOn.setVisibility(View.VISIBLE);
 
                 }
@@ -89,17 +102,28 @@ public class ScreenReceiver extends BroadcastReceiver {
                 {
                     isActivated = "false";
                     tinydb.putString("isActivated", isActivated);
-                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "Sanctuary")
-                            .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
-                            .setContentTitle("Guardian mode is off")
-                            .setContentText("Guardian Mode deactivated!")
-                            .setPriority(NotificationCompat.PRIORITY_MAX);
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(context, "Sanctuary");
+                    if(sp.getString("allowAudio", "").equals("true"))
+                    {
+                        builder
+                                .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                .setContentTitle("Guardian mode is off")
+                                .setContentText("Guardian Mode and audio recording deactivated!")
+                                .setPriority(NotificationCompat.PRIORITY_MAX);
+                    }
+                    else
+                    {
+                        builder
+                                .setSmallIcon(R.drawable.ic_baseline_notification_important_24)
+                                .setContentTitle("Guardian mode is off")
+                                .setContentText("Guardian Mode deactivated!")
+                                .setPriority(NotificationCompat.PRIORITY_MAX);
+                    }
 
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                     notificationManager.notify(100, builder.build());
 
                     MapsActivity.mButtonStartReset.setText("Guardian");
-                    MapsActivity.Tracking.setVisibility(View.INVISIBLE);
                     MapsActivity.mGuardianModeOn.setVisibility(View.INVISIBLE);
                 }
             }

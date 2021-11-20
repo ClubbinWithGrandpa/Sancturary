@@ -6,6 +6,7 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -15,6 +16,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -47,14 +49,16 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
     private Button mGuardianContact3Delete;
     private Button mGuardianContact4Delete;
     private Switch switchAllowAudio;
+    private Switch switchAllowTracking;
     public static final int REQUEST_AUDIO_PERMISSION_CODE = 32;
     private Boolean allowAudio;
+    private Boolean allowTracking;
     SharedPreferences sp;
     private int addwhich = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTitle("My Information");
+        setTitle("Setting");
         sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_setting);
@@ -72,6 +76,8 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact3Delete = findViewById(R.id.GMC3E);
         mGuardianContact4Delete = findViewById(R.id.GMC4E);
         switchAllowAudio = findViewById(R.id.switchAudio);
+        switchAllowTracking = findViewById(R.id.switchTrack);
+
 
         if(sp.getString("allowAudio", "").equals(""))
         {
@@ -90,6 +96,28 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
 
             }
         }
+
+
+        if(sp.getString("allowTracking", "").equals(""))
+        {
+            MapsActivity.mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape2));
+            allowTracking = false;
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("allowTracking", "false");
+            editor.commit();
+            switchAllowTracking.setChecked(false);
+        }
+        else
+        {
+            if(sp.getString("allowTracking", "").equals("true"))
+            {
+                MapsActivity.mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape));
+                allowTracking = true;
+                switchAllowTracking.setChecked(true);
+
+            }
+        }
+
 
         switchAllowAudio.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -114,10 +142,35 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putString("allowAudio", allowAudio.toString());
                     editor.commit();
+                    switchAllowAudio.setChecked(allowAudio);
                 }
 
 
 
+            }
+        });
+
+
+        switchAllowTracking.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                allowTracking = switchAllowTracking.isChecked();
+                if(allowTracking)
+                {
+                    MapsActivity.mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape));
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("allowTracking", allowTracking.toString());
+                    editor.commit();
+                    switchAllowTracking.setChecked(allowTracking);
+                }
+                else
+                {
+                    MapsActivity.mButtonStartReset.setBackground(getDrawable(R.drawable.buttonshape2));
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("allowTracking", allowTracking.toString());
+                    editor.commit();
+                    switchAllowTracking.setChecked(allowTracking);
+                }
             }
         });
 

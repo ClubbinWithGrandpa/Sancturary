@@ -60,7 +60,6 @@ public class LocationService extends Service {
                 if (locationResult != null && locationResult.getLastLocation() != null) {
                     double latitude = locationResult.getLastLocation().getLatitude();
                     double longitude = locationResult.getLastLocation().getLongitude();
-                    Log.d("LOCATION_UPDATE", latitude + ", " + longitude);
 
 
                     SharedPreferences sp;
