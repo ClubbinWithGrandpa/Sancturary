@@ -134,7 +134,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button mDelay;
     private Button mArrive;
     private Button mCancel;
-    private Place destination;
+    private String destination;
     private String ETA;
     private boolean isShowingPath;
     boolean isRecording;
@@ -180,8 +180,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 44);
         }
 
-        destination = null;
-        ETA = null;
 
 
         final MediaPlayer alarmSound = MediaPlayer.create(this, R.raw.alarm);
@@ -224,12 +222,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mCancel = findViewById(R.id.buttonCancel);
         mGuardianModeOn.setAlpha(0);
 
-        if(isLocationServiceRunning())
-        {
+
+        TinyDB tinydb = new TinyDB(getApplicationContext());
+        String isActivated = tinydb.getString("isActivated");
+        if (isActivated.equals("true")) {
             mButtonStartReset.setText("Stop");
             mGuardianModeOn.animate().alpha(1.0f).setDuration(500).start();
-
         }
+
         // Use bounce interpolator with amplitude 0.2 and frequency 20
         MyBounceInterpolator interpolator = new MyBounceInterpolator(0.05, 20);
 
@@ -299,6 +299,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
+        destination = null;
+        ETA = null;
+
+
+        if(!sp.getString("ETA", "").equals(""))
+        {
+            ETA = sp.getString("ETA", "");
+            destination = sp.getString("destination", "");
+            mDelay.setVisibility(View.VISIBLE);
+            mArrive.setVisibility(View.VISIBLE);
+        }
 
 
         createNofiticationChannel();
@@ -342,7 +353,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                         String helpMessage = "I am at http://maps.google.com?q=" + location.getLatitude() + "," + location.getLongitude()
-                                + " and I am heading to " + destination.getName() +" by " + distanceMode +", should be there in " + ETA;
+                                + " and I am heading to " + destination +" by " + distanceMode +", should be there in " + ETA;
 
                         if(!GC1_name.equals("")){
                             smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
@@ -362,6 +373,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                         Toast.makeText(getApplicationContext(), "SMS start message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
 
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString("ETA", ETA);
+                        editor.putString("destination", destination);
+                        editor.commit();
 
                     }
                 });
@@ -388,7 +403,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String GC4_num = sp.getString("GC4_number", "");
 
 
-                String helpMessage = "I am on my way to " + destination.getName() +", "+ "but there is a delay.";
+                String helpMessage = "I am on my way to " + destination +", "+ "but there is a delay.";
 
                 if(!GC1_name.equals("")){
                     smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
@@ -427,7 +442,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 String GC4_num = sp.getString("GC4_number", "");
 
 
-                String helpMessage = "I have safely arrived at " + destination.getName() + "!";
+                String helpMessage = "I have safely arrived at " + destination+ "!";
 
                 if(!GC1_name.equals("")){
                     smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
@@ -448,6 +463,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Toast.makeText(getApplicationContext(), "SMS arrive message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
                 mDelay.setVisibility(View.INVISIBLE);
                 mArrive.setVisibility(View.INVISIBLE);
+                SharedPreferences.Editor editor = sp.edit();
+                editor.putString("ETA", "");
+                editor.putString("destination", "");
+                editor.commit();
             }
         });
 
@@ -857,7 +876,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void run() {
-                destination = dest;
+                destination = dest.getName();
                 ETA = duration;
                 mStart.setVisibility(View.VISIBLE);
                 mCancel.setVisibility(View.VISIBLE);
