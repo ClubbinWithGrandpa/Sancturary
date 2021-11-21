@@ -41,6 +41,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -162,6 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private boolean allowTap;
 
 
+
     private int addwhich = 0;
 
     private static final int REQUEST_BACKGROUND_LOCATION_PERMISSION = 420;
@@ -219,18 +222,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDelay = findViewById(R.id.ButtonDelay);
         mArrive = findViewById(R.id.buttonArrive);
         mCancel = findViewById(R.id.buttonCancel);
+        mGuardianModeOn.setAlpha(0);
 
         if(isLocationServiceRunning())
         {
             mButtonStartReset.setText("Stop");
-
-            mGuardianModeOn.setVisibility(View.VISIBLE);
+            mGuardianModeOn.animate().alpha(1.0f).setDuration(500).start();
 
         }
+        // Use bounce interpolator with amplitude 0.2 and frequency 20
+        MyBounceInterpolator interpolator = new MyBounceInterpolator(0.05, 20);
 
         mShowPath.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mShowPath.startAnimation(myAnim);
+
                 if(isShowingPath)
                 {
                     guardianLocations = new ArrayList<>();
@@ -274,6 +283,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mSetting.startAnimation(myAnim);
 
                 if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MapsActivity.this, new String[]{Manifest.permission.SEND_SMS}, 2);
@@ -355,6 +367,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
                 mStart.setVisibility(View.INVISIBLE);
                 mCancel.setVisibility(View.INVISIBLE);
+                mArrive.setVisibility(View.VISIBLE);
+                mDelay.setVisibility(View.VISIBLE);
             }
         });
 
@@ -441,15 +455,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 mStart.setVisibility(View.INVISIBLE);
-                mDelay.setVisibility(View.INVISIBLE);
-                mArrive.setVisibility(View.INVISIBLE);
                 mCancel.setVisibility(View.INVISIBLE);
             }
         });
 
         mAlarm.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mAlarm.startAnimation(myAnim);
 
 
 
@@ -503,6 +519,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mEmergencyCall.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mEmergencyCall.startAnimation(myAnim);
 
                 if(!mEmergencyContactsRunning)
                 {
@@ -632,6 +651,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mButtonStartReset.startAnimation(myAnim);
+
                 if (sp.getString("allowTracking", "").equals("true"))
                 {
                     if (ContextCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -688,7 +711,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 }
                                 mButtonStartReset.setText("Guardian");
 
-                                mGuardianModeOn.setVisibility(View.INVISIBLE);
+                                mGuardianModeOn.animate().alpha(0.0f).setDuration(500).start();
                                 isActivated = "false";
                                 tinydb.putString("isActivated", isActivated);
                             }
@@ -717,7 +740,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                 mButtonStartReset.setText("Stop");
 
-                                mGuardianModeOn.setVisibility(View.VISIBLE);
+                                mGuardianModeOn.animate().alpha(1.0f).setDuration(500).start();
                                 isActivated = "true";
                                 tinydb.putString("isActivated", isActivated);
                             }
@@ -837,8 +860,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 destination = dest;
                 ETA = duration;
                 mStart.setVisibility(View.VISIBLE);
-                mDelay.setVisibility(View.VISIBLE);
-                mArrive.setVisibility(View.VISIBLE);
                 mCancel.setVisibility(View.VISIBLE);
 
 

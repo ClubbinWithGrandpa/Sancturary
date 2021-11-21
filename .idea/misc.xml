@@ -28,6 +28,8 @@
         <entry key="app/src/main/res/drawable/buttonshape1.xml" value="0.24114583333333334" />
         <entry key="app/src/main/res/drawable/buttonshape2.xml" value="0.4046875" />
         <entry key="app/src/main/res/drawable/buttonshape4.xml" value="0.4046875" />
+        <entry key="app/src/main/res/drawable/buttonshape5.xml" value="0.2703125" />
+        <entry key="app/src/main/res/drawable/circle.xml" value="0.4046875" />
         <entry key="app/src/main/res/drawable/ic_baseline_add_ic_call_24.xml" value="0.4046875" />
         <entry key="app/src/main/res/drawable/ic_baseline_arrow_drop_down_24.xml" value="0.23697916666666666" />
         <entry key="app/src/main/res/drawable/ic_baseline_cancel_24.xml" value="0.4046875" />
@@ -37,7 +39,7 @@
         <entry key="app/src/main/res/drawable/spinner_background.xml" value="0.4046875" />
         <entry key="app/src/main/res/drawable/spinner_item.xml" value="0.24114583333333334" />
         <entry key="app/src/main/res/drawable/spinner_style.xml" value="0.23697916666666666" />
-        <entry key="app/src/main/res/layout/activity_maps.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/activity_maps.xml" value="0.375" />
         <entry key="app/src/main/res/layout/activity_setting.xml" value="0.375" />
         <entry key="app/src/main/res/layout/ecinput.xml" value="0.32019927536231885" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.23645833333333333" />

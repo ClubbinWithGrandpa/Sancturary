@@ -24,6 +24,8 @@ import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -253,12 +255,17 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
                 mBtButton.setChecked(true);
             }
         }
+        MyBounceInterpolator interpolator = new MyBounceInterpolator(0.05, 20);
 
 
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mSave.startAnimation(myAnim);
 
                 String name = mEditTextGname.getText().toString();
                 String age = mEditTextGage.getText().toString();
@@ -281,6 +288,9 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mGuardianContact1.startAnimation(myAnim);
 
                 openDialog(11);
             }
@@ -288,18 +298,27 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mGuardianContact2.startAnimation(myAnim);
                 openDialog(12);
             }
         });
         mGuardianContact3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mGuardianContact3.startAnimation(myAnim);
                 openDialog(13);
             }
         });
         mGuardianContact4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Animation myAnim = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.bounce);
+                myAnim.setInterpolator(interpolator);
+                mGuardianContact4.startAnimation(myAnim);
                 openDialog(14);
             }
         });
@@ -307,6 +326,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact1Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 sp.edit().remove("GC1_name").commit();
                 sp.edit().remove("GC1_number").commit();
                 mGuardianContact1Delete.setVisibility(View.INVISIBLE);
@@ -317,6 +337,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact2Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 sp.edit().remove("GC2_name").commit();
                 sp.edit().remove("GC2_number").commit();
                 mGuardianContact2Delete.setVisibility(View.INVISIBLE);
@@ -327,6 +348,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact3Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 sp.edit().remove("GC3_name").commit();
                 sp.edit().remove("GC3_number").commit();
                 mGuardianContact3Delete.setVisibility(View.INVISIBLE);
@@ -337,6 +359,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
         mGuardianContact4Delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 sp.edit().remove("GC4_name").commit();
                 sp.edit().remove("GC4_number").commit();
                 mGuardianContact4Delete.setVisibility(View.INVISIBLE);

@@ -95,7 +95,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                     NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
                     notificationManager.notify(100, builder.build());
                     MapsActivity.mButtonStartReset.setText("Stop");
-                    MapsActivity.mGuardianModeOn.setVisibility(View.VISIBLE);
+                    MapsActivity.mGuardianModeOn.animate().alpha(1.0f).setDuration(500).start();
 
                 }
                 else
@@ -124,7 +124,7 @@ public class ScreenReceiver extends BroadcastReceiver {
                     notificationManager.notify(100, builder.build());
 
                     MapsActivity.mButtonStartReset.setText("Guardian");
-                    MapsActivity.mGuardianModeOn.setVisibility(View.INVISIBLE);
+                    MapsActivity.mGuardianModeOn.animate().alpha(0.0f).setDuration(500).start();
                 }
             }
 

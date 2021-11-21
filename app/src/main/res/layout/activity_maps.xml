@@ -14,10 +14,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".MapsActivity"
-        tools:layout_editor_absoluteX="-205dp"
-        tools:layout_editor_absoluteY="-16dp" />
-
-
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="0dp" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/emergencyCall"
@@ -26,6 +24,7 @@
         android:layout_height="50dp"
         android:layout_marginStart="2dp"
         android:background="@drawable/buttonshape2"
+        android:backgroundTint="@color/quantum_lightgreen"
         android:textColor="#FFFFFF"
         app:icon="@drawable/ic_baseline_call_24"
         app:iconGravity="textStart"
@@ -54,7 +53,32 @@
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.975" />
+        app:layout_constraintVertical_bias="0.932" />
+
+    <Button
+        android:id="@+id/showPath"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/ic_baseline_directions_run_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/Guardian"
+        app:layout_constraintHorizontal_bias="0.784"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.934" />
+
+    <Button
+        android:id="@+id/setting"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+
+        android:background="@drawable/ic_baseline_settings_applications_24"
+        app:layout_constraintBottom_toBottomOf="@+id/map"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.211"
+        app:layout_constraintStart_toEndOf="@+id/Guardian"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.932" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/alarm"
@@ -76,14 +100,14 @@
     <TextView
 
         android:id="@+id/GuardianModeAct"
-        android:layout_width="292dp"
-        android:layout_height="66dp"
-        android:background="@drawable/myrect"
+        android:layout_width="295dp"
+        android:layout_height="75dp"
         android:elevation="2dp"
+        android:gravity="center"
         android:text="Guardian Mode Activated"
-        android:textColor="#BB86FC"
-        android:textSize="25sp"
-        android:visibility="invisible"
+        android:textColor="#C696FF"
+        android:textSize="30sp"
+
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.505"
@@ -230,19 +254,6 @@
         map:layout_constraintTop_toTopOf="@+id/map"
         map:layout_constraintVertical_bias="0.582" />
 
-    <Button
-        android:id="@+id/setting"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-
-        android:background="@drawable/ic_baseline_settings_applications_24"
-        app:layout_constraintBottom_toBottomOf="@+id/map"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.211"
-        app:layout_constraintStart_toEndOf="@+id/Guardian"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.975" />
-
     <EditText
         android:id="@+id/edit_text"
         android:layout_width="187dp"
@@ -260,18 +271,6 @@
         map:layout_constraintStart_toStartOf="parent"
         map:layout_constraintTop_toTopOf="parent"
         map:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/showPath"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="@drawable/ic_baseline_directions_run_24"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/Guardian"
-        app:layout_constraintHorizontal_bias="0.784"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.976" />
 
     <Button
         android:id="@+id/imageView"
@@ -306,58 +305,63 @@
 
     <Button
         android:id="@+id/buttonArrive"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="55dp"
         android:layout_marginEnd="10dp"
+        android:background="@drawable/buttonshape5"
         android:text="Arrive"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.9"
+        app:layout_constraintHorizontal_bias="0.893"
         app:layout_constraintStart_toStartOf="@+id/map"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.789" />
+        app:layout_constraintVertical_bias="0.813" />
 
     <Button
         android:id="@+id/ButtonDelay"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="55dp"
         android:layout_marginStart="10dp"
-        android:layout_marginEnd="10dp"
+        android:background="@drawable/buttonshape5"
         android:text="Delay"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/buttonArrive"
-        app:layout_constraintStart_toEndOf="@+id/buttonStart"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.099"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.789" />
+        app:layout_constraintVertical_bias="0.813" />
 
     <Button
         android:id="@+id/buttonStart"
-        android:layout_width="100dp"
+        android:layout_width="110dp"
         android:layout_height="55dp"
-        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/buttonshape5"
         android:text="Start"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.095"
+        app:layout_constraintHorizontal_bias="0.893"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.789" />
+        app:layout_constraintVertical_bias="0.813" />
 
     <Button
         android:id="@+id/buttonCancel"
-        android:layout_width="150dp"
+        android:layout_width="110dp"
         android:layout_height="55dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/buttonshape5"
         android:text="Cancel"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.501"
+        app:layout_constraintHorizontal_bias="0.103"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ButtonDelay"
-        app:layout_constraintVertical_bias="0.145" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.813" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout >
