@@ -282,6 +282,7 @@ public class SettingActivity extends AppCompatActivity implements EmergencyConta
                 editor.putString("gender", Gender);
                 editor.putString("bt", BT);
                 editor.commit();
+                Toast.makeText(getApplicationContext(), "Your personal info has been saved!", Toast.LENGTH_SHORT).show();
             }
         });
 

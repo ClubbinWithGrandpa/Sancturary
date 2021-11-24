@@ -353,7 +353,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                         String helpMessage = "I am at http://maps.google.com?q=" + location.getLatitude() + "," + location.getLongitude()
-                                + " and I am heading to " + destination +" by " + distanceMode +", should be there in " + ETA;
+                                + " and I am heading to " + destination +" by " + distanceMode +", should be there in " + ETA + ".";
 
                         if(!GC1_name.equals("")){
                             smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
@@ -390,38 +390,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mDelay.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int count = 0;
-                SmsManager smsManager = SmsManager.getDefault();
-                String GC1_name = sp.getString("GC1_name", "");
-                String GC2_name = sp.getString("GC2_name", "");
-                String GC3_name = sp.getString("GC3_name", "");
-                String GC4_name = sp.getString("GC4_name", "");
+                fusedLocationProviderClient.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Location> task) {
+                        Location location = task.getResult();
+                        int count = 0;
+                        SmsManager smsManager = SmsManager.getDefault();
+                        String GC1_name = sp.getString("GC1_name", "");
+                        String GC2_name = sp.getString("GC2_name", "");
+                        String GC3_name = sp.getString("GC3_name", "");
+                        String GC4_name = sp.getString("GC4_name", "");
 
-                String GC1_num = sp.getString("GC1_number", "");
-                String GC2_num = sp.getString("GC2_number", "");
-                String GC3_num = sp.getString("GC3_number", "");
-                String GC4_num = sp.getString("GC4_number", "");
+                        String GC1_num = sp.getString("GC1_number", "");
+                        String GC2_num = sp.getString("GC2_number", "");
+                        String GC3_num = sp.getString("GC3_number", "");
+                        String GC4_num = sp.getString("GC4_number", "");
 
 
-                String helpMessage = "I am on my way to " + destination +", "+ "but there is a delay.";
+                        String helpMessage = "I am currently at " + "http://maps.google.com?q=" + location.getLatitude() + "," + location.getLongitude()
+                        + ", and I am on my way to " + destination +", "+ "but there is a short delay.";
 
-                if(!GC1_name.equals("")){
-                    smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
-                    count++;
-                }
-                if(!GC2_name.equals("")){
-                    smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
-                    count++;
-                }
-                if(!GC3_name.equals("")){
-                    smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
-                    count++;
-                }
-                if(!GC4_name.equals("")){
-                    smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
-                    count++;
-                }
-                Toast.makeText(getApplicationContext(), "SMS delay message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
+                        if(!GC1_name.equals("")){
+                            smsManager.sendTextMessage(GC1_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC2_name.equals("")){
+                            smsManager.sendTextMessage(GC2_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC3_name.equals("")){
+                            smsManager.sendTextMessage(GC3_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        if(!GC4_name.equals("")){
+                            smsManager.sendTextMessage(GC4_num, null, helpMessage, null, null);
+                            count++;
+                        }
+                        Toast.makeText(getApplicationContext(), "SMS delay message sent to all " +String.valueOf(count) + " of your guardian contacts", Toast.LENGTH_SHORT).show();
+
+                    }});
+
+
+
             }
         });
 
