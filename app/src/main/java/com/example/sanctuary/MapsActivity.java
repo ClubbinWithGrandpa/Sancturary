@@ -25,6 +25,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.location.Location;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.net.Uri;
@@ -183,6 +184,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         final MediaPlayer alarmSound = MediaPlayer.create(this, R.raw.alarm);
+        AudioManager audioManager = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 40, 0);
         alarmSound.setLooping(true);
 
         distanceMode = "driving";
