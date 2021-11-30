@@ -70,7 +70,7 @@ public class LocationService extends Service {
                     String gender = sp.getString("gender", "");
                     String bt = sp.getString("bt", "");
                     String helpMessage = "I am in danger, please come and help me! \nI am also providing my "+
-                            "personal information and current locations update every 5 min until Guardian mode is off. ";
+                            "personal information and current locations update every minute until Guardian mode is off. ";
                     String info_loc = "\nName: " + name + "\n" + "Age: " + age + "\n" + "Gender: " + gender + "\n" + "Blood type: " + bt + "\n";
 
 
